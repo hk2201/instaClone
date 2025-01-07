@@ -2,7 +2,7 @@ import Title from "../components/Title";
 
 function LoginPage() {
   return (
-    <div className="flex justify-center items-center h-screen bg-sky-100">
+    <div className="flex justify-center items-center h-screen white-100">
       <div class="bg-white shadow-md rounded w-full max-w-xl py-20">
         <div className="flex justify-center pb-10">
           <Title />
@@ -18,7 +18,7 @@ function LoginPage() {
           </div>
           <div class="mb-6">
             <input
-              class="hadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               id="password"
               type="password"
               placeholder="Password"
@@ -39,7 +39,7 @@ function LoginPage() {
             Log In
           </button>
           
-          <div className="flex justify-center pb-10">
+          <div className="flex justify-center pb-15">
           <a
                 class="inline-block align-baseline font-bold py-10 px-10 text-sm text-blue-500 hover:text-blue-800"
                 href="#"
