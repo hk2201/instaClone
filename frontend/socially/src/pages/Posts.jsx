@@ -12,9 +12,11 @@ function HomePage() {
     <div className="flex justify-center items-center h-screen">
       <div className="bg-white shadow-xl rounded-3xl border-2 size-11/12 flex flex-col h-screen">
         <Header />
-        <div className="flex flex-col items-center justify-center bg-indigo-100 size-11/12 w-full overflow-auto">
-          {dum.map((d) => (
-            <PostCards img={d.img} />
+        <div className="flex-1 flex flex-col items-center bg-indigo-100 overflow-y-auto p-4">
+          {dum.map((d, index) => (
+            <div className="mb-4">
+              <PostCards key={index} img={d.img} />
+            </div>
           ))}
         </div>
         <Footer />

@@ -3,7 +3,7 @@ import Title from "../components/Title";
 function LoginPage() {
   return (
     <div className="flex justify-center items-center h-screen white-100">
-      <div class="bg-white shadow-xl rounded-3xl border-2 size-11/12 flex justify-center items-center ">
+      <div class="bg-white shadow-xl rounded-3xl border-2 size-11/12 flex justify-center items-center flex-col h-screen">
         <div className="rounded w-full max-w-xl">
           <div className="flex justify-center pb-10 ">
             <Title />
@@ -49,9 +49,7 @@ function LoginPage() {
               </a>
             </div>
           </form>
-          <p class="text-center text-gray-500 text-xs">
-            &copy;2025 Instagram Clone
-          </p>
+          <p class="text-center text-gray-500 text-xs">&copy;2025 Socially</p>
         </div>
       </div>
     </div>
