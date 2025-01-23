@@ -130,18 +130,15 @@ const GroupPage = () => {
 
           {/* Groups List */}
           <div className="flex flex-col gap-4 py-4">
-            {isModal ? (
-              <GroupSettingsModal modalHandle={handleChange} />
-            ) : (
-              groups.map((group) => (
-                <GroupListItem
-                  key={group.id}
-                  group={group}
-                  modalState={isModal}
-                  modalHandle={handleChange}
-                />
-              ))
-            )}
+            {isModal && <GroupSettingsModal modalHandle={handleChange} />}
+            {groups.map((group) => (
+              <GroupListItem
+                key={group.id}
+                group={group}
+                modalState={isModal}
+                modalHandle={handleChange}
+              />
+            ))}
           </div>
         </div>
       </div>
