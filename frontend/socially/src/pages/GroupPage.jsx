@@ -84,12 +84,12 @@ const GroupPage = () => {
       <div className="bg-white shadow-xl rounded-3xl border-2 w-11/12 h-screen flex flex-col">
         <Header />
         <div className="mt-4 pt-4 flex justify-center items-center border-t border-gray-200">
-          <div>
-            <p className="text-sm text-gray-600 font-medium italics">
+          <div className="flex flex-col justify-center items-center">
+            <p className="text-sm w-64 sm:w-full text-gray-600 font-medium italics">
               "Share your moments, connect with others, make memories last
               forever"
             </p>
-            <div className="flex gap-2 mt-2 justify-center">
+            <div className="flex gap-2 mt-4 justify-center">
               <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">
                 #ShareMoments
               </span>
