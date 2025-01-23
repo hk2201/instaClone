@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react"; // Using Lucide for a more modern close icon
 
-const GroupSettingsModal = ({ onClose }) => {
+const GroupSettingsModal = ({ modalHandle }) => {
   const [activeTab, setActiveTab] = useState("basicInfo");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -13,13 +13,17 @@ const GroupSettingsModal = ({ onClose }) => {
     { id: "actions", label: "Group Actions" },
   ];
 
+  const handleChange = () => {
+    modalHandle(false);
+  };
+
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50 p-4">
       <div className="bg-white w-full max-w-4xl h-[90vh] rounded-lg shadow-lg flex flex-col md:flex-row relative overflow-hidden">
         {/* Mobile Header with Menu Toggle */}
         <div className="md:hidden flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">Settings</h2>
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="text-gray-600 hover:text-gray-900"
           >
@@ -28,13 +32,17 @@ const GroupSettingsModal = ({ onClose }) => {
         </div>
 
         {/* Side Menu - Responsive */}
-        <div className={`
-          ${isMobileMenuOpen ? 'block' : 'hidden'}
+        <div
+          className={`
+          ${isMobileMenuOpen ? "block" : "hidden"}
           md:block md:w-1/4 bg-gray-100 border-r rounded-l-lg p-4 
           absolute md:relative top-0 left-0 w-full h-full z-10 
           overflow-y-auto bg-white md:bg-gray-100
-        `}>
-          <h2 className="text-lg font-semibold mb-4 hidden md:block">Settings</h2>
+        `}
+        >
+          <h2 className="text-lg font-semibold mb-4 hidden md:block">
+            Settings
+          </h2>
           <ul className="space-y-2">
             {tabs.map((tab) => (
               <li key={tab.id}>
@@ -58,8 +66,8 @@ const GroupSettingsModal = ({ onClose }) => {
 
         {/* Content Area - Responsive */}
         <div className="flex-1 p-6 overflow-y-auto relative">
-          <button 
-            onClick={onClose}
+          <button
+            onClick={handleChange}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
           >
             <X className="w-6 h-6" />

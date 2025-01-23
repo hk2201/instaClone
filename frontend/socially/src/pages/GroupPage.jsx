@@ -130,7 +130,6 @@ const GroupPage = () => {
 
           {/* Groups List */}
           <div className="flex flex-col gap-4 py-4">
-            console.log(isModal);
             {isModal ? (
               <GroupSettingsModal modalHandle={handleChange} />
             ) : (

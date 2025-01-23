@@ -1,10 +1,8 @@
 import { Settings, ArrowRight, Bell } from "lucide-react";
-import { useState } from "react";
-const GroupListItem = ({ group, modalState, modalHandle }) => {
-  const [isModal, SetIsModal] = useState(modalState);
+
+const GroupListItem = ({ group, modalHandle }) => {
   function handleClick() {
-    SetIsModal(true);
-    modalHandle(isModal);
+    modalHandle(true);
   }
   return (
     <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all border border-gray-100">
