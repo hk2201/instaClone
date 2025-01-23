@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Users } from "lucide-react";
 import Header from "../components/Header";
 import GroupListItem from "../components/GroupListItem";
 import GroupSettingsModal from "../components/GroupSettingsModal";
+import { X, Users, Lock, Globe, Plus, Trash2 } from "lucide-react";
 
 const GroupPage = () => {
   const [groups, setGroups] = useState([
@@ -30,54 +30,49 @@ const GroupPage = () => {
   ]);
 
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({ name: "", description: "" });
-  const [availableUsers] = useState([
-    "Alice",
-    "Bob",
-    "Charlie",
-    "David",
-    "Eve",
-    "Grace",
-  ]); // Example users
-  const [typedMember, setTypedMember] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  // const [formData, setFormData] = useState({ name: "", description: "" });
+  // const [availableUsers] = useState([
+  //   "Alice",
+  //   "Bob",
+  //   "Charlie",
+  //   "David",
+  //   "Eve",
+  //   "Grace",
+  // ]); // Example users
+  const [groupName, setGroupName] = useState("");
+  const [description, setDescription] = useState("");
+  const [privacySetting, setPrivacySetting] = useState("private");
+  const [members, setMembers] = useState([]);
+  const [inviteInput, setInviteInput] = useState("");
   const [isModal, SetIsModal] = useState(false);
 
-  // Add member by typing
-  const handleAddMember = () => {
-    if (
-      availableUsers.some(
-        (user) => user.toLowerCase() === typedMember.toLowerCase()
-      )
-    ) {
-      if (!selectedUsers.includes(typedMember)) {
-        setSelectedUsers((prev) => [...prev, typedMember]);
-        setTypedMember("");
-      } else {
-        alert("Member is already added!");
-      }
-    } else {
-      alert("User not found!");
+  const addMember = () => {
+    if (inviteInput && !members.includes(inviteInput)) {
+      setMembers([...members, inviteInput]);
+      setInviteInput("");
     }
+  };
+
+  const removeMember = (memberToRemove) => {
+    setMembers(members.filter((member) => member !== memberToRemove));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const newGroup = {
       id: groups.length + 1,
-      name: formData.name,
-      memberCount: `${selectedUsers.length} members`,
+      name: groupName,
+      memberCount: `${members.length} members`,
       postCount: "0",
       image: "/api/placeholder/48/48",
-      members: selectedUsers,
     };
 
     setGroups((prevGroups) => [...prevGroups, newGroup]);
     setShowModal(false);
-    setFormData({ name: "", description: "" });
-    setTypedMember("");
-    setSelectedUsers([]);
+    setGroupName("");
+    setDescription("");
+    setMembers([]);
+    setInviteInput("");
   };
 
   const handleChange = (modalVal) => {
@@ -120,7 +115,7 @@ const GroupPage = () => {
               </div>
               <button
                 onClick={() => setShowModal(true)}
-                className="ml-auto bg-indigo-600 text-white px-4 py-2 rounded-lg"
+                className="ml-auto bg-indigo-600 text-white px-1 py-1  md:py-3 md:px-4 rounded-lg"
               >
                 Add Group
               </button>
@@ -154,96 +149,130 @@ const GroupPage = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Add Group</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
-                >
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50 p-4">
+          <div className="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
+              aria-label="Close modal"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              Create New Group
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="groupName" className="block mb-2 font-medium">
                   Group Name
                 </label>
                 <input
+                  id="groupName"
                   type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  placeholder="Enter group name"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-700"
-                >
+
+              <div>
+                <label htmlFor="description" className="block mb-2 font-medium">
                   Description
                 </label>
                 <textarea
                   id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  required
-                ></textarea>
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe your group (optional)"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  rows="3"
+                />
               </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="members"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Invite Members
-                </label>
-                <div className="flex items-center gap-2 mt-2">
+
+              <div>
+                <label className="block mb-2 font-medium">Privacy</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setPrivacySetting("private")}
+                    className={`flex items-center justify-center py-3 rounded-lg border transition ${
+                      privacySetting === "private"
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Lock className="mr-2 w-5 h-5" />
+                    Private
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPrivacySetting("public")}
+                    className={`flex items-center justify-center py-3 rounded-lg border transition ${
+                      privacySetting === "public"
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <Globe className="mr-2 w-5 h-5" />
+                    Public
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block mb-2 font-medium">Invite Members</label>
+                <div className="flex">
                   <input
-                    type="text"
-                    value={typedMember}
-                    onChange={(e) => setTypedMember(e.target.value)}
-                    placeholder="Type member name"
-                    className="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    type="email"
+                    value={inviteInput}
+                    onChange={(e) => setInviteInput(e.target.value)}
+                    placeholder="Enter email to invite"
+                    className="flex-1 px-3 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
                   <button
                     type="button"
-                    onClick={handleAddMember}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
+                    onClick={addMember}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-r-lg hover:bg-indigo-700"
                   >
-                    Add
+                    <Plus className="w-5 h-5" />
                   </button>
                 </div>
-                <div className="mt-4">
-                  {selectedUsers.map((user) => (
-                    <span
-                      key={user}
-                      className="text-sm bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full mr-2"
-                    >
-                      {user}
-                    </span>
-                  ))}
-                </div>
+
+                {members.length > 0 && (
+                  <div className="mt-2">
+                    <h4 className="text-sm font-medium mb-2">Added Members:</h4>
+                    <ul className="space-y-2 max-h-20 overflow-auto">
+                      {members.map((member) => (
+                        <li
+                          key={member}
+                          className="flex justify-between items-center bg-gray-100 px-3 py-2 rounded-lg"
+                        >
+                          <span>{member}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeMember(member)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
-                >
-                  Add Group
-                </button>
-              </div>
+
+              <button
+                type="submit"
+                onClick={handleSubmit}
+                className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition"
+              >
+                Create Group
+              </button>
             </form>
           </div>
         </div>
