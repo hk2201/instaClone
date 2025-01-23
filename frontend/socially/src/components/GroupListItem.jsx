@@ -1,5 +1,11 @@
 import { Settings, ArrowRight, Bell } from "lucide-react";
-const GroupListItem = ({ group }) => {
+import { useState } from "react";
+const GroupListItem = ({ group, modalState, modalHandle }) => {
+  const [isModal, SetIsModal] = useState(modalState);
+  function handleClick() {
+    SetIsModal(true);
+    modalHandle(isModal);
+  }
   return (
     <div className="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition-all border border-gray-100">
       <div className="relative">
@@ -25,7 +31,10 @@ const GroupListItem = ({ group }) => {
         <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
           <Bell className="w-5 h-5" />
         </button>
-        <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+        <button
+          className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          onClick={handleClick}
+        >
           <Settings className="w-5 h-5" />
         </button>
         <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors">
