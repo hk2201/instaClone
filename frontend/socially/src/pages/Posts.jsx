@@ -10,7 +10,7 @@ function HomePage() {
   ];
   return (
     <div className="flex justify-center items-center h-screen">
-      <div className="bg-white shadow-xl rounded-3xl border-2 size-11/12 flex flex-col h-screen">
+      <div className="bg-white size-11/12 flex flex-col h-screen">
         <Header />
         <div className="flex-1 flex flex-col items-center bg-indigo-100 overflow-y-auto p-4">
           {dum.map((d, index) => (
@@ -22,7 +22,6 @@ function HomePage() {
         <Footer />
       </div>
     </div>
-    
   );
 }
 

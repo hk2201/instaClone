@@ -9,7 +9,7 @@ function SignUpPage({ isSignup, OnValChange }) {
   }
   return (
     <div className="flex justify-center items-center h-screen white-100">
-      <div class="bg-white shadow-xl rounded-3xl border-2 size-11/12 flex justify-center items-center flex-col h-screen">
+      <div class="bg-white size-11/12 flex justify-center items-center flex-col h-screen">
         <div className="rounded w-full max-w-xl">
           <div className="flex justify-center pb-10 ">
             <Title />

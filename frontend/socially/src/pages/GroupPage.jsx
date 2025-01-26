@@ -80,8 +80,8 @@ const GroupPage = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-xl rounded-3xl border-2 w-11/12 h-screen flex flex-col">
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="bg-white w-11/12 h-screen flex flex-col">
         <Header />
         <div className="mt-4 pt-4 flex justify-center items-center border-t border-gray-200">
           <div className="flex flex-col justify-center items-center">
