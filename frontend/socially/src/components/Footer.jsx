@@ -8,39 +8,67 @@ import {
 } from "lucide-react";
 import { CirclePlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
+import Cropper from "react-cropper";
+import "cropperjs/dist/cropper.css";
+import Webcam from "react-webcam";
+
+const videoConstraints = {
+  width: 640,
+  height: 480,
+  facingMode: "user",
+};
 
 function Footer({ getImage }) {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-
-  const handleTakePhoto = () => {
-    console.log("Taking photo...");
-    setIsModalOpen(false);
-  };
+  const [isCameraMode, setIsCameraMode] = useState(false);
+  const cropperRef = useRef(null);
+  const webcamRef = useRef(null);
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const ImageBlob = URL.createObjectURL(file);
-      setSelectedImage(ImageBlob);
-      // console.log(URL.createObjectURL(file));
-      getImage(ImageBlob);
+      const imageBlob = URL.createObjectURL(file);
+      setSelectedImage(imageBlob);
     }
+  };
 
+  const handleCrop = () => {
+    if (cropperRef.current) {
+      const croppedImageData = cropperRef.current.cropper
+        .getCroppedCanvas()
+        .toDataURL();
+      getImage(croppedImageData);
+    }
     setIsModalOpen(false);
+    setSelectedImage(null);
+    setIsCameraMode(false);
+  };
+
+  const capture = useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setSelectedImage(imageSrc);
+  }, [webcamRef]);
+
+  const handleOpenCamera = () => {
+    setIsCameraMode(true);
+    setSelectedImage(null);
+  };
+
+  const handleOpenGallery = () => {
+    setIsCameraMode(false);
+    setSelectedImage(null);
   };
 
   return (
     <>
       <div className="flex justify-center items-center w-full px-4 sm:space-x-60 space-x-10 border-t border-gray-200">
-        {/* Profile Button */}
         <button className="p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group">
           <User className="w-8 sm:w-10 h-8 sm:h-10 group-hover:text-indigo-600" />
         </button>
 
-        {/* Direct Message Button */}
         <button
           className="relative p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group"
           onClick={() => navigate("/chats")}
@@ -51,7 +79,6 @@ function Footer({ getImage }) {
           </span>
         </button>
 
-        {/* Add Post Button */}
         <button
           className="bg-indigo-600 md:p-2 rounded-full shadow-lg hover:shadow-xl hover:bg-indigo-700 transition-all duration-300 hover:scale-105 group z-50"
           onClick={() => setIsModalOpen(true)}
@@ -63,12 +90,10 @@ function Footer({ getImage }) {
           </span>
         </button>
 
-        {/* Settings Button */}
         <button className="p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group">
           <Settings className="w-8 sm:w-10 h-8 sm:h-10 group-hover:text-indigo-600" />
         </button>
 
-        {/* Logout Button */}
         <button
           className="p-2 sm:p-3 text-gray-600 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors group"
           onClick={() => navigate("/groups")}
@@ -77,47 +102,114 @@ function Footer({ getImage }) {
         </button>
       </div>
 
-      {/* Custom Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
-            onClick={() => setIsModalOpen(false)}
+            onClick={() => {
+              setIsModalOpen(false);
+              setIsCameraMode(false);
+              setSelectedImage(null);
+            }}
           />
 
-          {/* Modal Content */}
           <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 relative z-10">
-            <div className="flex flex-col space-y-4">
-              <button
-                onClick={handleTakePhoto}
-                className="flex items-center space-x-2 p-4 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <Camera className="w-6 h-6 text-indigo-600" />
-                <span className="text-lg">Take a Picture</span>
-              </button>
-              <div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  style={{ display: "none" }}
-                  id="fileInput"
-                />
+            {!selectedImage && !isCameraMode && (
+              <div className="flex flex-col space-y-4">
                 <button
-                  onClick={() => document.getElementById("fileInput").click()}
+                  onClick={handleOpenCamera}
                   className="flex items-center space-x-2 p-4 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <Image className="w-6 h-6 text-indigo-600" />
-
-                  <span className="text-lg">Choose from Gallery</span>
+                  <Camera className="w-6 h-6 text-indigo-600" />
+                  <span className="text-lg">Take a Picture</span>
                 </button>
+
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    style={{ display: "none" }}
+                    id="fileInput"
+                  />
+                  <button
+                    onClick={() => document.getElementById("fileInput").click()}
+                    className="flex items-center space-x-2 p-4 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <Image className="w-6 h-6 text-indigo-600" />
+                    <span className="text-lg">Choose from Gallery</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {isCameraMode && !selectedImage && (
+              <div className="flex flex-col space-y-4">
+                <Webcam
+                  audio={false}
+                  ref={webcamRef}
+                  screenshotFormat="image/jpeg"
+                  videoConstraints={videoConstraints}
+                  minScreenshotWidth={180}
+                  minScreenshotHeight={180}
+                />
+                <div className="flex justify-between">
+                  <button
+                    onClick={capture}
+                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300"
+                  >
+                    Capture
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsCameraMode(false);
+                      setSelectedImage(null);
+                    }}
+                    className="bg-gray-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-all duration-300"
+                  >
+                    Back
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {selectedImage && (
+              <div className="flex flex-col items-center space-y-4">
+                <h2 className="text-xl font-semibold text-gray-700">
+                  Crop Your Image
+                </h2>
+                <div className="w-full overflow-hidden rounded-lg border border-gray-300 shadow-sm">
+                  <Cropper
+                    src={selectedImage}
+                    style={{ height: 300, width: "100%" }}
+                    aspectRatio={1}
+                    guides={true}
+                    ref={cropperRef}
+                    viewMode={2}
+                  />
+                </div>
+                <div className="flex justify-between w-full">
+                  <button
+                    onClick={handleCrop}
+                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300"
+                  >
+                    Crop & Save
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedImage(null);
+                      isCameraMode
+                        ? setIsCameraMode(true)
+                        : setIsCameraMode(false);
+                    }}
+                    className="bg-gray-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-all duration-300"
+                  >
+                    Back
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-          {/* {selectedImage && (
-            <img src={selectedImage} alt="Selected" width="200px" />
-          )} */}
         </div>
       )}
     </>
