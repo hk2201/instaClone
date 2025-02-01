@@ -89,14 +89,18 @@ const Chat = () => {
     <div
       className={`w-full md:w-80 bg-white h-full ${
         selectedChat !== null ? "hidden md:flex" : "flex"
-      } flex-col`}
+      } flex-col`}  
     >
       <div className="p-4 border-b">
-        <div className="flex flex-cols gap-1 contents-center">
-          <button onClick={() => navigate("/posts")}>
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-xl font-semibold mb-4">Messages</h1>
+        <div className="flex flex-cols gap-1 items-center">
+          <div>
+            <button onClick={() => navigate("/posts")}>
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+          </div>
+          <div>
+            <h1 className="text-xl font-semibold mb-1">Messages</h1>
+          </div>
         </div>
         <div className="relative">
           <input

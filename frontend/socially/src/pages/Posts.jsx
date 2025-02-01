@@ -1,14 +1,25 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { useEffect, useState } from "react";
 import PostCards from "../components/PostCards";
 
-
 function HomePage() {
-  const dum = [
+  const [dum, setDum] = useState([
     { img: "/images.jpeg" },
     { img: "/images.jpeg" },
     { img: "/images.jpeg" },
-  ];
+  ]);
+
+  function receiveImage(val) {
+    setDum((prevDum) => [...prevDum, { img: val }]); // Update state correctly
+    console.log("From Posts");
+    console.log(val);
+  }
+
+  useEffect(() => {
+    console.log("Dum updated:", dum);
+  }, [dum]); // Runs when `dum` updates
+
   return (
     <div className="flex justify-center items-center h-screen">
       <div className="bg-white size-11/12 flex flex-col h-screen">
@@ -26,7 +37,7 @@ function HomePage() {
           </div>
         </div>
 
-        <Footer />
+        <Footer getImage={receiveImage} />
       </div>
     </div>
   );
