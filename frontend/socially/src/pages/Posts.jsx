@@ -12,13 +12,9 @@ function HomePage() {
 
   function receiveImage(val) {
     setDum((prevDum) => [...prevDum, { img: val }]); // Update state correctly
-    console.log("From Posts");
-    console.log(val);
   }
 
-  useEffect(() => {
-    console.log("Dum updated:", dum);
-  }, [dum]); // Runs when `dum` updates
+  useEffect(() => {}, [dum]); // Runs when `dum` updates
 
   return (
     <div className="flex justify-center items-center h-screen">

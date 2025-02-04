@@ -1,2 +1,27 @@
 # Local Netlify folder
 .netlify
+# Node.js dependencies
+node_modules/
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.npm/
+.yarn/
+
+# Lint and testing files
+eslintcache
+jest/
+coverage/

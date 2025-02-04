@@ -14,8 +14,8 @@ import "cropperjs/dist/cropper.css";
 import Webcam from "react-webcam";
 
 const videoConstraints = {
-  width: 640,
-  height: 480,
+  width: 1280,
+  height: 720,
   facingMode: "user",
 };
 
