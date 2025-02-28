@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useLoader } from "./loaderContext";
 import { showToast } from "./toastService";
@@ -22,41 +22,50 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    setIsLoading(true); // Show loader
+    setIsLoading(true);
     try {
       const response = await axios.post(process.env.REACT_APP_LOGIN_API, {
-        email: email,
-        password: password,
+        email,
+        password,
       });
 
-      console.log("User logged in:");
-      const userData = { email }; // Store user data
-      localStorage.setItem("user", JSON.stringify(userData));
+      const token = response.data.data.token; // Get JWT token
+      localStorage.setItem("token", token); // Store JWT token
+
+      const decoded = jwtDecode(token); // Decode JWT to extract userId
+      const userData = { email, userId: decoded.userId };
+      localStorage.setItem("user", JSON.stringify(userData)); // Store user info
+
       setUser(userData);
-
-      // For success messages
       showToast(`${userData.email} logged in successfully`, "success");
-
-      navigate("/groups"); // Redirect after login
+      navigate("/groups");
     } catch (error) {
       console.error("Error logging in:", error);
-      showToast(
-        error.response?.data?.message || "Login failed. Please try again.",
-        "error"
-      );
+      showToast(error.response?.data?.message || "Login failed.", "error");
     } finally {
-      setIsLoading(false); // Hide loader (Runs even if there's an error)
+      setIsLoading(false);
     }
   };
 
-  const signup = async (email, password, lastname, username) => {
+  const signup = async (email, password, lastname, username, repassword) => {
+    if (!lastname || !username) {
+      showToast("First-Name or Last-Name missing", "error");
+      return;
+    }
+    if (!email || !password) {
+      showToast("Email and Password required", "error");
+      return;
+    }
     if (password.length < 8) {
       showToast("Password must be at least 8 characters long", "error");
       return;
     }
+    if (password != repassword) {
+      showToast("Password not matching", "error");
+      return;
+    }
 
-    setIsLoading(true); // Show loader
-
+    setIsLoading(true);
     try {
       const response = await axios.post(process.env.REACT_APP_SIGNUP_API, {
         email,
@@ -65,32 +74,27 @@ export const AuthProvider = ({ children }) => {
         username,
       });
 
-      if (response?.data) {
-        console.log("User Signed in:");
-        const userData = { email };
-        localStorage.setItem("user", JSON.stringify(userData));
-        setUser(userData);
+      const token = response.data.data.token; // Get JWT token
+      localStorage.setItem("token", token); // Store JWT token
 
-        showToast(`${userData.email} signed up successfully`, "success");
-        navigate("/groups"); // Redirect after login
-      } else {
-        throw new Error("Invalid response from server");
-      }
+      const decoded = jwtDecode(token); // Decode JWT to extract userId
+      const userData = { email, userId: decoded.userId };
+      localStorage.setItem("user", JSON.stringify(userData)); // Store user info
+
+      setUser(userData);
+      showToast(`${userData.email} signed up successfully`, "success");
+      navigate("/groups");
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.statusText ||
-        "Signup failed. Please try again.";
-      console.error("Error Signing in:", error);
-      showToast(errorMessage, "error");
+      console.error("Signup Error:", error);
+      showToast(error.response?.data?.message || "Signup failed.", "error");
     } finally {
-      setIsLoading(false); // Hide loader (Runs even if there's an error)
+      setIsLoading(false);
     }
   };
 
   // ✅ Google Login Function
   const googleLogin = async (response) => {
-    setIsLoading(true); // Show loader
+    setIsLoading(true);
     try {
       const decoded = jwtDecode(response.credential);
 
@@ -104,9 +108,13 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
-      const email = backendResponse.data.data.user.email;
-      const userData = { email };
-      localStorage.setItem("user", JSON.stringify(userData)); // Store user
+      const token = backendResponse.data.data.token; // Get JWT token
+      localStorage.setItem("token", token); // Store JWT token
+
+      const userDecoded = jwtDecode(token); // Decode JWT to extract userId
+      const userData = { email: decoded.email, userId: userDecoded.userId };
+      localStorage.setItem("user", JSON.stringify(userData)); // Store user info
+
       setUser(userData);
       showToast(`${userData.email} logged in successfully`, "success");
       navigate("/groups"); // Redirect after login
@@ -121,6 +129,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setIsLoading(true);
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setUser(null);
     setTimeout(() => {
       setIsLoading(false);

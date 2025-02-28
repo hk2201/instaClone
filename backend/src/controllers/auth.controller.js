@@ -6,6 +6,8 @@ import { HttpStatus } from "../utils/httpStatus.js";
 
 const saltRounds = 10;
 
+//========================NORMAL_SIGNUP==================================================//
+
 export const signup = async (req, res) => {
   try {
     const { email, password, username, lastname } = req.body;
@@ -50,9 +52,13 @@ export const signup = async (req, res) => {
     });
 
     // Generate JWT
-    const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { userId: newUser.id, email: newUser.email },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     // Omit passwordHash from response
     const { passwordHash, ...safeUser } = newUser;
@@ -69,6 +75,8 @@ export const signup = async (req, res) => {
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
   }
 };
+
+//========================GOOGLE_LOGIN==================================================//
 
 export const googlelogin = async (req, res) => {
   try {
@@ -101,9 +109,13 @@ export const googlelogin = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     // Omit passwordHash from response
     const { passwordHash, ...safeUser } = user;
@@ -121,6 +133,109 @@ export const googlelogin = async (req, res) => {
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
   }
 };
+
+//========================GET_GROUPS==================================================//
+
+export const getGroups = async (req, res) => {
+  try {
+    const userEmail = req.user.email; // Using 'email' instead of 'id'
+    console.log(userEmail);
+    // Fetch groups the user is part of
+    const groups = await prisma.group.findMany({
+      where: {
+        memberships: {
+          some: {
+            email: userEmail, // Match email instead of userId
+          },
+        },
+      },
+      include: {
+        memberships: {
+          include: {
+            user: {
+              select: { id: true, username: true, email: true, image: true },
+            },
+          },
+        },
+        creator: {
+          select: { id: true, username: true, email: true },
+        },
+        posts: true, // Include posts to count them
+      },
+    });
+
+    // Format response
+    const formattedGroups = groups.map((group) => {
+      // Extract members from memberships
+      const members = group.memberships.map((membership) => ({
+        email: membership.email, // Store email instead of userId
+        name: membership.user?.username || "Unknown",
+        image: membership.user?.image || "/api/placeholder/48/48",
+      }));
+
+      return {
+        id: group.id,
+        name: group.name,
+        memberCount: `${members.length} members`,
+        postCount: (group.posts?.length || 0).toString(),
+        image: group.image || "/api/placeholder/48/48",
+        members,
+        description: group.description || "",
+        createdAt: group.createdAt,
+        creatorId: group.creatorId, // Still keeping creator by ID
+      };
+    });
+
+    return res
+      .status(HttpStatus.OK)
+      .json(new APIResponse(HttpStatus.OK, formattedGroups));
+  } catch (error) {
+    console.error("Error fetching groups:", error);
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
+//========================POST_GROUPS==================================================//
+
+export const postGroups = async (req, res) => {
+  try {
+    const { groupName, description, image, members } = req.body;
+    console.log(req.body);
+    const creatorEmail = req.user.email; // Get creator's email
+
+    // Create the group with memberships using emails
+    const newGroup = await prisma.group.create({
+      data: {
+        description,
+        image,
+        creatorId: req.user.id, // Keep tracking creator by ID
+        memberships: {
+          create: [
+            { email: creatorEmail }, // Add creator as a member
+            ...members.map((email) => ({ email })), // Store member emails
+          ],
+        },
+        name: groupName,
+      },
+      include: {
+        memberships: true, // Include member emails
+      },
+    });
+
+    return res
+      .status(HttpStatus.CREATED)
+      .json(new APIResponse(HttpStatus.CREATED, newGroup));
+  } catch (error) {
+    console.error("Error creating group:", error);
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
+//========================NORMAL_LOGIN==================================================//
 
 export const login = async (req, res) => {
   try {
@@ -150,9 +265,13 @@ export const login = async (req, res) => {
     }
 
     // Generate JWT
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { userId: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     // Omit passwordHash from response
     const { passwordHash, ...safeUser } = user;

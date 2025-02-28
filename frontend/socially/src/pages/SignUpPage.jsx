@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Title from "../components/Title";
 import { useAuth } from "../context/authContext";
+import { GoogleLogin } from "@react-oauth/google";
 
 function SignUpPage({ isSignup, OnValChange }) {
   // Please implement the re enter password validation check
@@ -10,8 +11,9 @@ function SignUpPage({ isSignup, OnValChange }) {
     username: "",
     lastname: "",
     password: "",
+    repassword: "",
   });
-  const { signup } = useAuth();
+  const { signup, googleLogin } = useAuth();
 
   function handleClick() {
     SetIsLogin(!isLogin);
@@ -35,7 +37,8 @@ function SignUpPage({ isSignup, OnValChange }) {
         userData.email,
         userData.password,
         userData.lastname,
-        userData.username
+        userData.username,
+        userData.repassword
       );
     } catch (error) {
       alert(error.message);
@@ -93,8 +96,10 @@ function SignUpPage({ isSignup, OnValChange }) {
             <div className="mb-6">
               <input
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="rePassword"
+                id="repassword"
                 type="password"
+                value={userData.repassword}
+                onChange={handleInputChange}
                 placeholder="Re-enter Password"
               />
             </div>
@@ -105,6 +110,22 @@ function SignUpPage({ isSignup, OnValChange }) {
             >
               Sign Up
             </button>
+            {/* Divider with OR */}
+            <div className="flex items-center my-4">
+              <div className="flex-grow h-px bg-gray-300"></div>
+              <span className="mx-4 text-gray-500 text-sm">OR</span>
+              <div className="flex-grow h-px bg-gray-300"></div>
+            </div>
+
+            {/* Google Login */}
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={googleLogin}
+                onError={() => console.log("Google Login Failed")}
+                theme="outline" // Options: "outline" or "filled_blue"
+                size="large" // Options: "small", "medium", "large"
+              />
+            </div>
 
             <div className="flex justify-center pb-15">
               <a

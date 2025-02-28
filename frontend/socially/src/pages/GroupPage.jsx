@@ -1,50 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
+import axios from "axios";
 import GroupListItem from "../components/GroupListItem";
 import GroupSettingsModal from "../components/GroupSettingsModal";
 import { X, Users, Lock, Globe, Plus, Trash2 } from "lucide-react";
+import { useLoader } from "../context/loaderContext";
+import { useAuth } from "../context/authContext";
+import { showToast } from "../context/toastService";
 
 const GroupPage = () => {
   const [groups, setGroups] = useState([
-    {
-      id: 1,
-      name: "Photography Enthusiasts",
-      memberCount: "1.2K",
-      postCount: "34",
-      image: "/api/placeholder/48/48",
-    },
-    {
-      id: 2,
-      name: "Travel & Adventure",
-      memberCount: "856",
-      postCount: "15",
-      image: "/api/placeholder/48/48",
-    },
-    {
-      id: 3,
-      name: "Food Lovers Club",
-      memberCount: "2.5K",
-      postCount: "67",
-      image: "/api/placeholder/48/48",
-    },
+    // {
+    //   id: 1,
+    //   name: "Photography Enthusiasts",
+    //   memberCount: "1.2K",
+    //   postCount: "34",
+    //   image: "/api/placeholder/48/48",
+    // },
   ]);
-
   const [showModal, setShowModal] = useState(false);
-  // const [formData, setFormData] = useState({ name: "", description: "" });
-  // const [availableUsers] = useState([
-  //   "Alice",
-  //   "Bob",
-  //   "Charlie",
-  //   "David",
-  //   "Eve",
-  //   "Grace",
-  // ]); // Example users
   const [groupName, setGroupName] = useState("");
   const [description, setDescription] = useState("");
   const [privacySetting, setPrivacySetting] = useState("private");
   const [members, setMembers] = useState([]);
   const [inviteInput, setInviteInput] = useState("");
   const [isModal, SetIsModal] = useState(false);
+  const { setIsLoading } = useLoader();
+
+  const { user } = useAuth(); // Get logged-in user from context
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const token = localStorage.getItem("token"); // Get token from localStorage
+        const response = await axios.get(
+          process.env.REACT_APP_GET_GROUPS_API, // Replace with your API
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setGroups(response.data.data);
+        console.log("Full API response:", response);
+        console.log("Response data:", response.data);
+        console.log("Groups data:", response.data.data);
+      } catch (error) {
+        console.error("Error fetching groups:", error);
+      }
+    };
+
+    if (user) {
+      fetchGroups(); // Fetch groups when the user is logged in
+    }
+  }, [user]); // Runs when the user state changes
 
   const addMember = () => {
     if (inviteInput && !members.includes(inviteInput)) {
@@ -57,7 +66,7 @@ const GroupPage = () => {
     setMembers(members.filter((member) => member !== memberToRemove));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newGroup = {
       id: groups.length + 1,
@@ -65,14 +74,43 @@ const GroupPage = () => {
       memberCount: `${members.length} members`,
       postCount: "0",
       image: "/api/placeholder/48/48",
+      members: members,
     };
 
-    setGroups((prevGroups) => [...prevGroups, newGroup]);
-    setShowModal(false);
-    setGroupName("");
-    setDescription("");
-    setMembers([]);
-    setInviteInput("");
+    try {
+      setShowModal(false);
+      setIsLoading(true);
+      // await new Promise((resolve, reject) => {
+      //   setTimeout(() => {
+      //     resolve("Done waiting for 5 seconds");
+      //   }, 5000);
+      // }).then(console.log);
+      const token = localStorage.getItem("token"); // Get token from localStorage
+      const response = await axios.post(
+        process.env.REACT_APP_POST_GROUPS_API, // Replace with your API
+        { groupName, description, image: "/api/placeholder/48/48", members },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      showToast(`${response.data.data.name} Group Created`, "success");
+    } catch (error) {
+      console.error("Error fetching groups:", error);
+      showToast(
+        error.response?.data?.message || "Error Fetching Data",
+        "error"
+      );
+    } finally {
+      setGroups((prevGroups) => [...prevGroups, newGroup]);
+      setGroupName("");
+      setDescription("");
+      setMembers([]);
+      setInviteInput("");
+      setIsLoading(false);
+      console.log(groups);
+    }
   };
 
   const handleChange = (modalVal) => {
