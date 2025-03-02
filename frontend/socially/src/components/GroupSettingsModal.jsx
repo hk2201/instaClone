@@ -1,20 +1,72 @@
-import React, { useState } from "react";
-import { X } from "lucide-react"; // Using Lucide for a more modern close icon
+import React, { useEffect, useState } from "react";
+import { X, Upload, Camera } from "lucide-react"; // Using Lucide for icons
+import { useStoreContext } from "../context/storeContext";
+import { useLoader } from "../context/loaderContext";
 
-const GroupSettingsModal = ({ modalHandle }) => {
+const GroupSettingsModal = ({ modalHandle, groupID }) => {
   const [activeTab, setActiveTab] = useState("basicInfo");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [groupInfo, setGroupInfo] = useState({
+    id: groupID,
+    name: "",
+    description: "",
+    location: "",
+    category: "",
+    image: null,
+  });
+  const { groupData, updateGroupData } = useStoreContext();
+  const { setIsLoading } = useLoader();
 
   const tabs = [
-    { id: "basicInfo", label: "Basic Info" },
+    { id: "basicInfo", label: "Group Info." },
     { id: "memberManagement", label: "Member Management" },
     { id: "privacy", label: "Privacy" },
     { id: "notifications", label: "Notifications" },
     { id: "actions", label: "Group Actions" },
   ];
 
+  useEffect(() => {
+    // Check if groupData is an array before calling map
+    if (Array.isArray(groupData)) {
+      const currentGroup = groupData.find((g) => g.id === groupID);
+      if (currentGroup) {
+        // You could also update the form with this data
+        setGroupInfo({
+          id: currentGroup.id,
+          name: currentGroup.name || "",
+          description: currentGroup.description || "",
+          location: currentGroup.location || "",
+          category: currentGroup.category || "",
+          image: currentGroup.image || null,
+        });
+      }
+    }
+  }, []);
+
   const handleChange = () => {
     modalHandle(false);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setGroupInfo((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setGroupInfo((prev) => ({
+        ...prev,
+        image: URL.createObjectURL(file),
+      }));
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    await updateGroupData(groupInfo);
   };
 
   return (
@@ -75,11 +127,140 @@ const GroupSettingsModal = ({ modalHandle }) => {
 
           {activeTab === "basicInfo" && (
             <div>
-              <h3 className="text-xl font-bold mb-4">Basic Group Info</h3>
-              <p>
-                Edit your group's name, description, and other basic details
-                here.
-              </p>
+              <h3 className="text-xl font-bold mb-4">Basic Group Info.</h3>
+              <div className="space-y-6">
+                {/* Group Image */}
+                <div className="flex flex-col items-center mb-6">
+                  <div className="relative w-32 h-32 mb-2">
+                    {groupInfo.image ? (
+                      <img
+                        src={groupInfo.image}
+                        alt="Group"
+                        className="w-32 h-32 rounded-full object-cover border-2 border-gray-200"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
+                        <Camera className="w-12 h-12 text-gray-400" />
+                      </div>
+                    )}
+                    <label
+                      htmlFor="group-image"
+                      className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full cursor-pointer hover:bg-indigo-700"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <input
+                        type="file"
+                        id="group-image"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageChange}
+                      />
+                    </label>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Upload group image (recommended size: 200x200)
+                  </p>
+                </div>
+
+                {/* Group Name */}
+                <div className="mb-4">
+                  <label
+                    htmlFor="name"
+                    className="block mb-2 text-sm font-medium text-gray-900"
+                  >
+                    Group Name*
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={groupInfo.name}
+                    onChange={handleInputChange}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                    placeholder="Enter group name"
+                    required
+                  />
+                </div>
+
+                {/* Group Description */}
+                <div className="mb-4">
+                  <label
+                    htmlFor="description"
+                    className="block mb-2 text-sm font-medium text-gray-900"
+                  >
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    rows="4"
+                    value={groupInfo.description}
+                    onChange={handleInputChange}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                    placeholder="Describe what your group is about"
+                  ></textarea>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Brief description helps potential members understand your
+                    group's purpose
+                  </p>
+                </div>
+
+                {/* Location */}
+                {/* <div className="mb-4">
+                  <label
+                    htmlFor="location"
+                    className="block mb-2 text-sm font-medium text-gray-900"
+                  >
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    value={groupInfo.location}
+                    onChange={handleInputChange}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                    placeholder="City, Country or 'Online'"
+                  />
+                </div> */}
+
+                {/* Category */}
+                {/* <div className="mb-6">
+                  <label
+                    htmlFor="category"
+                    className="block mb-2 text-sm font-medium text-gray-900"
+                  >
+                    Category
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={groupInfo.category}
+                    onChange={handleInputChange}
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                  >
+                    <option value="">Select a category</option>
+                    <option value="technology">Technology</option>
+                    <option value="education">Education</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="health">Health & Wellness</option>
+                    <option value="business">Business & Networking</option>
+                    <option value="hobby">Hobbies & Interests</option>
+                    <option value="social">Social</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div> */}
+
+                {/* Save Button */}
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleSaveChanges}
+                    className="px-6 py-2.5 bg-indigo-600 text-white font-medium text-sm rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 

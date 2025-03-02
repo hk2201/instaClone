@@ -1,25 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
+import ReactDOM from "react-dom"; // Import this
 import { useLoader } from "../context/loaderContext";
 import Title from "./Title";
 
 const Loader = () => {
   const { isLoading } = useLoader();
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    if (isLoading) {
-      // Simulate progress for demo purposes
-      const interval = setInterval(() => {
-        setProgress((prev) => (prev < 90 ? prev + 10 : prev));
-      }, 800);
-      return () => clearInterval(interval);
-    }
-  }, [isLoading]);
 
   if (!isLoading) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+  // Use ReactDOM.createPortal to render directly to body
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
       {/* Loader container with glass effect */}
       <div className="p-8 rounded-xl bg-white bg-opacity-80 shadow-lg flex flex-col items-center">
         {/* Brand logo placeholder */}
@@ -41,14 +32,6 @@ const Loader = () => {
           ))}
         </div>
 
-        {/* Progress bar */}
-        <div className="mt-8 w-full h-1.5 bg-gray-200 bg-opacity-30 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-400 to-blue-600 transition-all duration-300 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
         {/* Loading text */}
         <div className="mt-4 text-gray-600 font-medium">
           Getting things ready for you...
@@ -66,7 +49,8 @@ const Loader = () => {
           }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body // This appends the loader directly to the body element
   );
 };
 

@@ -139,7 +139,7 @@ export const googlelogin = async (req, res) => {
 export const getGroups = async (req, res) => {
   try {
     const userEmail = req.user.email; // Using 'email' instead of 'id'
-    console.log(userEmail);
+    // console.log(userEmail);
     // Fetch groups the user is part of
     const groups = await prisma.group.findMany({
       where: {
@@ -202,7 +202,7 @@ export const getGroups = async (req, res) => {
 export const postGroups = async (req, res) => {
   try {
     const { groupName, description, image, members } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
     const creatorEmail = req.user.email; // Get creator's email
 
     // Create the group with memberships using emails
@@ -283,6 +283,107 @@ export const login = async (req, res) => {
       })
     );
   } catch (error) {
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
+//========================UPDATE_GROUP_INFO==================================================//
+
+export const updateGroupInfo = async (req, res) => {
+  try {
+    const { id, name, description, image } = req.body;
+
+    // Validate required fields
+    if (!id) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new APIResponse(HttpStatus.BAD_REQUEST, null, "Group ID is required")
+        );
+    }
+
+    // Check if the group exists
+    const existingGroup = await prisma.group.findUnique({
+      where: { id },
+      include: {
+        memberships: true,
+        creator: {
+          select: { id: true, email: true },
+        },
+      },
+    });
+
+    if (!existingGroup) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json(new APIResponse(HttpStatus.NOT_FOUND, null, "Group not found"));
+    }
+
+    // Authorization check: Only creator or admin should be able to update the group
+    // if (existingGroup.creatorId !== req.user.id) {
+    //   return res
+    //     .status(HttpStatus.FORBIDDEN)
+    //     .json(
+    //       new APIResponse(
+    //         HttpStatus.FORBIDDEN,
+    //         null,
+    //         "You don't have permission to update this group"
+    //       )
+    //     );
+    // }
+
+    // Update group information
+    const updatedGroup = await prisma.group.update({
+      where: { id },
+      data: {
+        name: name || existingGroup.name,
+        description:
+          description !== undefined ? description : existingGroup.description,
+        image: image !== undefined ? image : existingGroup.image,
+        updatedAt: new Date(),
+      },
+      include: {
+        memberships: {
+          include: {
+            user: {
+              select: { id: true, username: true, email: true, image: true },
+            },
+          },
+        },
+        creator: {
+          select: { id: true, username: true, email: true },
+        },
+        posts: true,
+      },
+    });
+
+    // Format response similar to getGroups
+    const members = updatedGroup.memberships.map((membership) => ({
+      email: membership.email,
+      name: membership.user?.username || "Unknown",
+      image: membership.user?.image || "/api/placeholder/48/48",
+    }));
+
+    const formattedGroup = {
+      id: updatedGroup.id,
+      name: updatedGroup.name,
+      memberCount: `${members.length} members`,
+      postCount: (updatedGroup.posts?.length || 0).toString(),
+      image: updatedGroup.image || "/api/placeholder/48/48",
+      members,
+      description: updatedGroup.description || "",
+      createdAt: updatedGroup.createdAt,
+      updatedAt: updatedGroup.updatedAt,
+      creatorId: updatedGroup.creatorId,
+    };
+
+    return res
+      .status(HttpStatus.OK)
+      .json(new APIResponse(HttpStatus.OK, formattedGroup));
+  } catch (error) {
+    console.error("Error updating group info:", error);
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));

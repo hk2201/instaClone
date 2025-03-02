@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { Settings, ArrowRight, Bell } from "lucide-react";
 import { Toaster, toast } from "sonner";
 
-const GroupListItem = ({ group, modalHandle }) => {
+const GroupListItem = ({ groupID, group, modalHandle }) => {
   const [isBellActive, setIsBellActive] = useState(false);
 
   function handleClick() {
-    modalHandle(true);
+    modalHandle(true, groupID);
   }
 
   function handleBellClick() {

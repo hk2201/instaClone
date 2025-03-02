@@ -7,6 +7,7 @@ import { X, Users, Lock, Globe, Plus, Trash2 } from "lucide-react";
 import { useLoader } from "../context/loaderContext";
 import { useAuth } from "../context/authContext";
 import { showToast } from "../context/toastService";
+import { useStoreContext } from "../context/storeContext";
 
 const GroupPage = () => {
   const [groups, setGroups] = useState([
@@ -25,13 +26,16 @@ const GroupPage = () => {
   const [members, setMembers] = useState([]);
   const [inviteInput, setInviteInput] = useState("");
   const [isModal, SetIsModal] = useState(false);
+  const [tempGroupId, settempGroupId] = useState();
   const { setIsLoading } = useLoader();
 
   const { user } = useAuth(); // Get logged-in user from context
+  const { groupData, updateGroupData } = useStoreContext();
 
   useEffect(() => {
     const fetchGroups = async () => {
       try {
+        setIsLoading(true);
         const token = localStorage.getItem("token"); // Get token from localStorage
         const response = await axios.get(
           process.env.REACT_APP_GET_GROUPS_API, // Replace with your API
@@ -42,11 +46,15 @@ const GroupPage = () => {
           }
         );
         setGroups(response.data.data);
-        console.log("Full API response:", response);
-        console.log("Response data:", response.data);
-        console.log("Groups data:", response.data.data);
+        updateGroupData(response.data.data);
+        // console.log("Full API response:", response);
+        // console.log("Response data:", response.data);
+        // console.log("Groups data:", response.data.data);
       } catch (error) {
+        showToast("Error fetching groups", "error");
         console.error("Error fetching groups:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -54,7 +62,7 @@ const GroupPage = () => {
       fetchGroups(); // Fetch groups when the user is logged in
     }
   }, [user]); // Runs when the user state changes
-
+  
   const addMember = () => {
     if (inviteInput && !members.includes(inviteInput)) {
       setMembers([...members, inviteInput]);
@@ -76,6 +84,17 @@ const GroupPage = () => {
       image: "/api/placeholder/48/48",
       members: members,
     };
+
+    if (!groupName) {
+      showToast("Please enter group name", "error");
+      return;
+    } else if (!description) {
+      showToast("Please enter group description", "error");
+      return;
+    } else if (members.length < 1) {
+      showToast("Please add members to your group", "error");
+      return;
+    }
 
     try {
       setShowModal(false);
@@ -113,8 +132,9 @@ const GroupPage = () => {
     }
   };
 
-  const handleChange = (modalVal) => {
+  const handleChange = (modalVal, id) => {
     SetIsModal(modalVal);
+    settempGroupId(id);
   };
 
   return (
@@ -168,13 +188,19 @@ const GroupPage = () => {
 
           {/* Groups List */}
           <div className="flex flex-col gap-4 py-4">
-            {isModal && <GroupSettingsModal modalHandle={handleChange} />}
+            {isModal && (
+              <GroupSettingsModal
+                modalHandle={handleChange}
+                groupID={tempGroupId}
+              />
+            )}
             {groups.map((group) => (
               <GroupListItem
                 key={group.id}
                 group={group}
                 modalState={isModal}
                 modalHandle={handleChange}
+                groupID={group.id}
               />
             ))}
           </div>
