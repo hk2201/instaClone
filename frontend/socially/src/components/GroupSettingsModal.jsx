@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { X, Upload, Camera } from "lucide-react"; // Using Lucide for icons
+import { X, Upload, Camera, Plus, Trash2, Users, UserPlus } from "lucide-react"; // Using Lucide for icons
 import { useStoreContext } from "../context/storeContext";
 import { useLoader } from "../context/loaderContext";
+import MemberList from "../components/MemberList";
 
 const GroupSettingsModal = ({ modalHandle, groupID }) => {
   const [activeTab, setActiveTab] = useState("basicInfo");
+  const [activeMemberTab, setActiveMemberTab] = useState("current");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [inviteInput, setInviteInput] = useState("");
   const [groupInfo, setGroupInfo] = useState({
     id: groupID,
     name: "",
@@ -14,8 +17,11 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
     category: "",
     image: null,
   });
+  const [newmembers, setNewMembers] = useState([]);
   const { groupData, updateGroupData } = useStoreContext();
   const { setIsLoading } = useLoader();
+  const { updateCurrentGroup, updateMembers, updateNewMembers, currentGroup } =
+    useStoreContext();
 
   const tabs = [
     { id: "basicInfo", label: "Group Info." },
@@ -27,6 +33,7 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
 
   useEffect(() => {
     // Check if groupData is an array before calling map
+
     if (Array.isArray(groupData)) {
       const currentGroup = groupData.find((g) => g.id === groupID);
       if (currentGroup) {
@@ -39,10 +46,28 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
           category: currentGroup.category || "",
           image: currentGroup.image || null,
         });
+
+        updateMembers(currentGroup.members);
+        updateCurrentGroup(groupInfo);
       }
     }
   }, []);
 
+  const addMember = () => {
+    if (inviteInput && !newmembers.includes(inviteInput)) {
+      setNewMembers([...newmembers, inviteInput]);
+      setInviteInput("");
+    }
+  };
+
+  const AddNewMembers = () => {
+    updateNewMembers(newmembers, currentGroup.id);
+    setNewMembers([]);
+  };
+
+  const removeMember = (memberToRemove) => {
+    setNewMembers(newmembers.filter((member) => member !== memberToRemove));
+  };
   const handleChange = () => {
     modalHandle(false);
   };
@@ -265,9 +290,129 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
           )}
 
           {activeTab === "memberManagement" && (
-            <div>
+            <div className="p-4 rounded-lg">
               <h3 className="text-xl font-bold mb-4">Member Management</h3>
-              <p>Manage members of your group, invite or remove members.</p>
+
+              {/* Tab navigation */}
+              <div className="flex mb-4 border-b">
+                <button
+                  className={`flex items-center gap-1 px-4 py-2 font-medium ${
+                    activeMemberTab === "current"
+                      ? "border-b-2 border-indigo-600 text-indigo-600"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                  onClick={() => setActiveMemberTab("current")}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Current Members</span>
+                </button>
+                <button
+                  className={`flex items-center gap-1 px-4 py-2 font-medium ${
+                    activeMemberTab === "invite"
+                      ? "border-b-2 border-indigo-600 text-indigo-600"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                  onClick={() => setActiveMemberTab("invite")}
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Invite New</span>
+                </button>
+              </div>
+
+              {/* Current members tab */}
+              {activeMemberTab === "current" && (
+                <div>
+                  <div className="mb-4">
+                    <div className="relative">
+                      <input
+                        type="search"
+                        placeholder="Search members..."
+                        className="w-full px-3 py-2 pl-10 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
+                      />
+                      <svg
+                        className="absolute left-3 top-3 text-gray-400"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    <MemberList />
+                  </div>
+                </div>
+              )}
+
+              {/* Invite members tab */}
+              {activeMemberTab === "invite" && (
+                <div>
+                  <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <label className="block mb-2 font-medium text-gray-700">
+                      Invite New Members
+                    </label>
+                    <div className="flex mb-3">
+                      <input
+                        type="email"
+                        value={inviteInput}
+                        onChange={(e) => setInviteInput(e.target.value)}
+                        placeholder="Enter email to invite"
+                        className="flex-1 px-3 py-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={addMember}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-r-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {newmembers.length > 0 && (
+                      <div className="mt-2">
+                        <h4 className="text-sm font-medium mb-2 text-gray-700">
+                          Members to invite:
+                        </h4>
+                        <ul className="space-y-2 max-h-32 overflow-y-auto">
+                          {newmembers.map((member) => (
+                            <li
+                              key={member}
+                              className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg"
+                            >
+                              <span className="text-gray-800">{member}</span>
+                              <button
+                                type="button"
+                                onClick={() => removeMember(member)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="mt-4">
+                      <button
+                        type="submit"
+                        className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                        onClick={AddNewMembers}
+                      >
+                        <UserPlus className="w-5 h-5" />
+                        <span>Add</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

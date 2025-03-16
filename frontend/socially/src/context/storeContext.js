@@ -9,7 +9,32 @@ export const StoreProvider = ({ children }) => {
   // Initialize groupData as an array
   const [groupData, setGroupData] = useState([]);
   const { setIsLoading } = useLoader();
+  const [currentGroup, setCurrentGroup] = useState();
+  const [members, setMembers] = useState([]);
   // const { user } = useAuth();
+
+  const addNewMembers = async (upData, groupId) => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        process.env.REACT_APP_UPDATE_NEW_MEMBERS,
+        { upData, groupId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setMembers(response.data.data);
+
+      showToast("New Members added", "success");
+    } catch (error) {
+      showToast(`${error.response.data.message}`, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchGroups = async (upData) => {
     setIsLoading(true);
@@ -35,6 +60,18 @@ export const StoreProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const updateMembers = (newData) => {
+    setMembers(newData);
+  };
+
+  const updateNewMembers = (newData, Id) => {
+    addNewMembers(newData, Id);
+  };
+
+  const updateCurrentGroup = (newData) => {
+    setCurrentGroup(newData);
   };
 
   // Update function that properly maintains the array structure
@@ -89,6 +126,11 @@ export const StoreProvider = ({ children }) => {
     updateGroupById,
     addGroup,
     removeGroup,
+    members,
+    currentGroup,
+    updateMembers,
+    updateCurrentGroup,
+    updateNewMembers,
   };
 
   return (

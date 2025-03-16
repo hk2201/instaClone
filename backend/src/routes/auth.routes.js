@@ -6,6 +6,9 @@ import {
   getGroups,
   postGroups,
   updateGroupInfo,
+  deleteMember,
+  updateAdmin,
+  updateNewMembers,
 } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middlewares/auth.js";
 
@@ -23,5 +26,11 @@ router.get("/getGroups", authMiddleware, getGroups);
 router.post("/postGroups", authMiddleware, postGroups);
 
 router.put("/updateGroupInfo", authMiddleware, updateGroupInfo);
+
+router.delete("/deleteMember", authMiddleware, deleteMember);
+
+router.put("/updateAdmin", authMiddleware, updateAdmin);
+
+router.put("/updateNewMembers", authMiddleware, updateNewMembers);
 
 export default router;

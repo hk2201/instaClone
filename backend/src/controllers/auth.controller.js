@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../prisma.js";
 import { APIResponse } from "../utils/apiResponse.js";
 import { HttpStatus } from "../utils/httpStatus.js";
+import { Role } from "@prisma/client";
 
 const saltRounds = 10;
 
@@ -153,12 +154,18 @@ export const getGroups = async (req, res) => {
         memberships: {
           include: {
             user: {
-              select: { id: true, username: true, email: true, image: true },
+              select: {
+                id: true,
+                username: true,
+                lastname: true,
+                email: true,
+                image: true,
+              },
             },
           },
         },
         creator: {
-          select: { id: true, username: true, email: true },
+          select: { id: true, username: true, email: true, lastname: true },
         },
         posts: true, // Include posts to count them
       },
@@ -171,6 +178,9 @@ export const getGroups = async (req, res) => {
         email: membership.email, // Store email instead of userId
         name: membership.user?.username || "Unknown",
         image: membership.user?.image || "/api/placeholder/48/48",
+        lastname: membership.user?.lastname || "Unknown",
+        id: membership.user?.id || "Unknown",
+        role: membership.role || "Unknown",
       }));
 
       return {
@@ -213,7 +223,7 @@ export const postGroups = async (req, res) => {
         creatorId: req.user.id, // Keep tracking creator by ID
         memberships: {
           create: [
-            { email: creatorEmail }, // Add creator as a member
+            { email: creatorEmail, role: "ADMIN" }, // Add creator as a member
             ...members.map((email) => ({ email })), // Store member emails
           ],
         },
@@ -289,6 +299,381 @@ export const login = async (req, res) => {
   }
 };
 
+//========================UPDATE_ADMIN==================================================//
+
+export const updateAdmin = async (req, res) => {
+  try {
+    const { groupId, member } = req.body;
+
+    // Validate if the user that is performing action is ADMIN
+    const checkAdmin = await prisma.membership.findUnique({
+      where: {
+        email_groupId: {
+          email: req.user.email,
+          groupId: groupId,
+        },
+      },
+    });
+
+    if (checkAdmin.role != "ADMIN") {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json(
+          new APIResponse(
+            HttpStatus.UNAUTHORIZED,
+            null,
+            "Only Admin can update member role"
+          )
+        );
+    }
+
+    // Validate required fields
+    if (!groupId) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new APIResponse(HttpStatus.BAD_REQUEST, null, "Group ID is required")
+        );
+    }
+
+    if (!member.id) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new APIResponse(HttpStatus.BAD_REQUEST, null, "Member ID is requires")
+        );
+    }
+
+    // Get user's email from their ID
+    const user = await prisma.user.findUnique({
+      where: { id: member.id },
+      select: { email: true },
+    });
+
+    if (!user) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json(new APIResponse(HttpStatus.NOT_FOUND, null, "User not found"));
+    }
+
+    // Check if the user is already a member of the group
+    const existingMembership = await prisma.membership.findUnique({
+      where: {
+        email_groupId: {
+          email: user.email,
+          groupId: groupId,
+        },
+      },
+    });
+
+    // If the user is already in the group, delete their membership
+    if (existingMembership.role != "ADMIN") {
+      await prisma.membership.update({
+        where: { id: existingMembership.id },
+        data: { role: "ADMIN" },
+      });
+    }
+
+    if (existingMembership.role == "ADMIN") {
+      await prisma.membership.update({
+        where: { id: existingMembership.id },
+        data: { role: "MEMBER" },
+      });
+    }
+
+    // Now fetch all updated memberships of the group
+    const updatedMemberships = await prisma.membership.findMany({
+      where: {
+        groupId: existingMembership.groupId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            lastname: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    // Format response similar to getGroups
+    const members = updatedMemberships.map((membership) => ({
+      email: membership.email,
+      name: membership.user?.username || "Unknown",
+      image: membership.user?.image || "/api/placeholder/48/48",
+      lastname: membership.user?.lastname || "Unknown",
+      id: membership.user?.id || "Unknown",
+      role: membership.role || "Unknown",
+    }));
+
+    return res
+      .status(HttpStatus.OK)
+      .json(
+        new APIResponse(
+          HttpStatus.OK,
+          members,
+          "Member role updated successfully"
+        )
+      );
+  } catch (error) {
+    console.error("Error updating member role", error);
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
+//========================DELETE_MEMBER_FROM_GROUP==================================================//
+
+export const deleteMember = async (req, res) => {
+  try {
+    const { groupId, member } = req.body;
+
+    // Validate if the user that is performing action is ADMIN
+    const checkAdmin = await prisma.membership.findUnique({
+      where: {
+        email_groupId: {
+          email: req.user.email,
+          groupId: groupId,
+        },
+      },
+    });
+
+    if (checkAdmin.role != "ADMIN") {
+      return res
+        .status(HttpStatus.UNAUTHORIZED)
+        .json(
+          new APIResponse(
+            HttpStatus.UNAUTHORIZED,
+            null,
+            "Only Admin can remove members"
+          )
+        );
+    }
+
+    // Validate required fields
+    if (!groupId) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new APIResponse(HttpStatus.BAD_REQUEST, null, "Group ID is required")
+        );
+    }
+
+    if (!member.id) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new APIResponse(HttpStatus.BAD_REQUEST, null, "Member ID is requires")
+        );
+    }
+
+    // Get user's email from their ID
+    const user = await prisma.user.findUnique({
+      where: { id: member.id },
+      select: { email: true },
+    });
+
+    if (!user) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json(new APIResponse(HttpStatus.NOT_FOUND, null, "User not found"));
+    }
+
+    // Check if the user is already a member of the group
+    const existingMembership = await prisma.membership.findUnique({
+      where: {
+        email_groupId: {
+          email: user.email,
+          groupId: groupId,
+        },
+      },
+    });
+
+    // If the user is already in the group, delete their membership
+    if (existingMembership) {
+      await prisma.membership.delete({
+        where: {
+          id: existingMembership.id,
+        },
+      });
+    }
+
+    // Now fetch all updated memberships of the group
+    const updatedMemberships = await prisma.membership.findMany({
+      where: {
+        groupId: groupId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            lastname: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    // Format response similar to getGroups
+    const members = updatedMemberships.map((membership) => ({
+      email: membership.email,
+      name: membership.user?.username || "Unknown",
+      image: membership.user?.image || "/api/placeholder/48/48",
+      lastname: membership.user?.lastname || "Unknown",
+      id: membership.user?.id || "Unknown",
+      role: membership.role || "Unknown",
+    }));
+
+    return res
+      .status(HttpStatus.OK)
+      .json(
+        new APIResponse(
+          HttpStatus.OK,
+          members,
+          "Member removed from group successfully"
+        )
+      );
+  } catch (error) {
+    console.error("Error removing member", error);
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
+//========================UPDATE_NEW_MEMBERS==================================================//
+
+export const updateNewMembers = async (req, res) => {
+  try {
+    const { groupId, upData } = req.body;
+
+    // Validate required fields
+    if (!groupId) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new APIResponse(HttpStatus.BAD_REQUEST, null, "Group ID is required")
+        );
+    }
+
+    if (!upData || !Array.isArray(upData) || upData.length === 0) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new APIResponse(
+            HttpStatus.BAD_REQUEST,
+            null,
+            "New members array is required"
+          )
+        );
+    }
+
+    // Check if the group exists
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+    });
+
+    if (!group) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json(new APIResponse(HttpStatus.NOT_FOUND, null, "Group not found"));
+    }
+
+    const results = [];
+
+    // Process all new members
+    for (const memberEmail of upData) {
+      // Get user by email
+      const user = await prisma.user.findUnique({
+        where: { email: memberEmail },
+        select: { email: true },
+      });
+
+      if (!user) {
+        results.push({
+          email: memberEmail,
+          status: "failed",
+          message: "User not found",
+        });
+        continue;
+      }
+
+      // Check if the user is already a member of the group
+      const existingMembership = await prisma.membership.findUnique({
+        where: {
+          email_groupId: {
+            email: user.email,
+            groupId,
+          },
+        },
+      });
+
+      // If the user is not already in the group, create new membership
+      if (!existingMembership) {
+        await prisma.membership.create({
+          data: {
+            email: user.email,
+            groupId,
+          },
+        });
+      } else if (existingMembership) {
+        return res
+          .status(HttpStatus.CONFLICT)
+          .json(
+            new APIResponse(
+              HttpStatus.CONFLICT,
+              null,
+              "Members already part of group"
+            )
+          );
+      }
+    }
+
+    // Now fetch all updated memberships of the group
+    const updatedMemberships = await prisma.membership.findMany({
+      where: {
+        groupId: groupId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            lastname: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    // Format response similar to getGroups
+    const members = updatedMemberships.map((membership) => ({
+      email: membership.email,
+      name: membership.user?.username || "Unknown",
+      image: membership.user?.image || "/api/placeholder/48/48",
+      lastname: membership.user?.lastname || "Unknown",
+      id: membership.user?.id || "Unknown",
+      role: membership.role || "Unknown",
+    }));
+
+    return res
+      .status(HttpStatus.OK)
+      .json(new APIResponse(HttpStatus.OK, members, "New members processed"));
+  } catch (error) {
+    console.error("Error adding new members", error);
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
 //========================UPDATE_GROUP_INFO==================================================//
 
 export const updateGroupInfo = async (req, res) => {
@@ -348,12 +733,18 @@ export const updateGroupInfo = async (req, res) => {
         memberships: {
           include: {
             user: {
-              select: { id: true, username: true, email: true, image: true },
+              select: {
+                id: true,
+                username: true,
+                lastname: true,
+                email: true,
+                image: true,
+              },
             },
           },
         },
         creator: {
-          select: { id: true, username: true, email: true },
+          select: { id: true, username: true, email: true, lastname: true },
         },
         posts: true,
       },
@@ -364,6 +755,9 @@ export const updateGroupInfo = async (req, res) => {
       email: membership.email,
       name: membership.user?.username || "Unknown",
       image: membership.user?.image || "/api/placeholder/48/48",
+      lastname: membership.user?.lastname || "Unknown",
+      id: membership.user?.id || "Unknown",
+      role: membership.role || "Unknown",
     }));
 
     const formattedGroup = {
