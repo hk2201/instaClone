@@ -1,8 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { X, Upload, Camera, Plus, Trash2, Users, UserPlus } from "lucide-react"; // Using Lucide for icons
+import React, { use, useEffect, useState } from "react";
+import {
+  X,
+  Upload,
+  Camera,
+  Plus,
+  Trash2,
+  Users,
+  UserPlus,
+  Group,
+} from "lucide-react"; // Using Lucide for icons
 import { useStoreContext } from "../context/storeContext";
-import { useLoader } from "../context/loaderContext";
+// import { useLoader } from "../context/loaderContext";
 import MemberList from "../components/MemberList";
+import { useAuth } from "../context/authContext";
 
 const GroupSettingsModal = ({ modalHandle, groupID }) => {
   const [activeTab, setActiveTab] = useState("basicInfo");
@@ -18,17 +28,24 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
     image: null,
   });
   const [newmembers, setNewMembers] = useState([]);
-  const { groupData, updateGroupData } = useStoreContext();
-  const { setIsLoading } = useLoader();
-  const { updateCurrentGroup, updateMembers, updateNewMembers, currentGroup } =
-    useStoreContext();
+  const {
+    groupData,
+    updateGroupData,
+    updateCurrentGroup,
+    updateMembers,
+    updateNewMembers,
+    currentGroup,
+  } = useStoreContext();
+  // const { setIsLoading } = useLoader();
+  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const tabs = [
     { id: "basicInfo", label: "Group Info." },
     { id: "memberManagement", label: "Member Management" },
     { id: "privacy", label: "Privacy" },
     { id: "notifications", label: "Notifications" },
-    { id: "actions", label: "Group Actions" },
+    // { id: "actions", label: "Group Actions" },
   ];
 
   useEffect(() => {
@@ -47,6 +64,17 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
           image: currentGroup.image || null,
         });
 
+        const getInfo = () => {
+          return currentGroup.members.find(
+            (member) => member.email === user.email
+          );
+        };
+
+        const validateLoggedAdmin = getInfo();
+
+        if (validateLoggedAdmin && validateLoggedAdmin.role === "ADMIN") {
+          setIsAdmin(true);
+        }
         updateMembers(currentGroup.members);
         updateCurrentGroup(groupInfo);
       }
@@ -149,7 +177,6 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
           >
             <X className="w-6 h-6" />
           </button>
-
           {activeTab === "basicInfo" && (
             <div>
               <h3 className="text-xl font-bold mb-4">Basic Group Info.</h3>
@@ -288,7 +315,6 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
               </div>
             </div>
           )}
-
           {activeTab === "memberManagement" && (
             <div className="p-4 rounded-lg">
               <h3 className="text-xl font-bold mb-4">Member Management</h3>
@@ -316,6 +342,17 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
                 >
                   <UserPlus className="w-4 h-4" />
                   <span>Invite New</span>
+                </button>
+                <button
+                  className={`flex items-center gap-1 px-4 py-2 font-medium ${
+                    activeMemberTab === "Group Actions"
+                      ? "border-b-2 border-indigo-600 text-indigo-600"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                  onClick={() => setActiveMemberTab("Group Actions")}
+                >
+                  <Group className="w-5 h-5" />
+                  <span>Group Actions</span>
                 </button>
               </div>
 
@@ -413,30 +450,280 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
                   </div>
                 </div>
               )}
+              {activeMemberTab === "Group Actions" && (
+                <div>
+                  {/* <h4 className="text-lg font-semibold mb-3 text-red-600 border-b border-red-200 pb-2">
+                    Danger Zone
+                  </h4> */}
+                  <div className="space-y-4 flex justify-center pt-5">
+                    {/* <button
+                      className="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700 flex items-center justify-center"
+                      // onClick={handleArchiveGroup}
+                    >
+                      <span className="mr-2">Archive Group</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                        <path
+                          fillRule="evenodd"
+                          d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button> */}
+                    {isAdmin ? (
+                      <div className="flex flex-col space-y-3 w-full items-center">
+                        <h3 className="font-semibold text-gray-700 mb-1">
+                          Admin Controls
+                        </h3>
+                        <button
+                          className="w-3/4 py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center justify-center transition-colors duration-200"
+                          // onClick={handleDeleteGroup}
+                        >
+                          <span className="mr-2">Delete Group</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </button>
+                        <div className="w-3/4 flex items-center my-2">
+                          <div className="flex-grow border-t border-gray-300"></div>
+                          <span className="px-3 text-sm text-gray-500">OR</span>
+                          <div className="flex-grow border-t border-gray-300"></div>
+                        </div>
+                        <button
+                          className="w-3/4 py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center justify-center transition-colors duration-200"
+                          // onClick={handleLeaveGroup}
+                        >
+                          <span className="mr-2">Leave Group</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4.5a.5.5 0 00-.5-.5h-5a.5.5 0 000 1h3.8l-3.15 3.15a.5.5 0 00.7.7L13 8.71V12.5a.5.5 0 001 0v-5z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex w-full items-center justify-center">
+                        <button
+                          className="w-3/4 py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center justify-center transition-colors duration-200"
+                          // onClick={handleLeaveGroup}
+                        >
+                          <span className="mr-2">Leave Group</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4.5a.5.5 0 00-.5-.5h-5a.5.5 0 000 1h3.8l-3.15 3.15a.5.5 0 00.7.7L13 8.71V12.5a.5.5 0 001 0v-5z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
-
           {activeTab === "privacy" && (
             <div>
               <h3 className="text-xl font-bold mb-4">Privacy Settings</h3>
-              <p>Set your group's privacy to public or private.</p>
+              <p>
+                Set your group's privacy to public or private. (Feature to be
+                added later)
+              </p>
             </div>
           )}
-
           {activeTab === "notifications" && (
             <div>
               <h3 className="text-xl font-bold mb-4">Notifications</h3>
-              <p>Customize how you receive notifications from the group.</p>
+              <p>
+                Customize how you receive notifications from the group. (Feature
+                to be added later)
+              </p>
             </div>
           )}
-
           {activeTab === "actions" && (
-            <div>
+            <div className="p-4">
               <h3 className="text-xl font-bold mb-4">Group Actions</h3>
-              <p>
+              <p className="mb-6 text-gray-600">
                 Perform group-level actions like deleting the group or leaving
                 it.
               </p>
+
+              {/* Member Actions Section */}
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold mb-3 border-b pb-2">
+                  Member Actions
+                </h4>
+                <div className="space-y-4">
+                  <button
+                    className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center"
+                    // onClick={handleInviteMembers}
+                  >
+                    <span className="mr-2">Invite New Members</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                    </svg>
+                  </button>
+
+                  {
+                    <button
+                      className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center"
+                      // onClick={handleManageMembers}
+                    >
+                      <span className="mr-2">Manage Members</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                      </svg>
+                    </button>
+                  }
+
+                  <button
+                    className="w-full py-2 px-4 bg-yellow-600 text-white rounded hover:bg-yellow-700 flex items-center justify-center"
+                    // onClick={handleLeaveGroup}
+                  >
+                    <span className="mr-2">Leave Group</span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Group Management Section - Admin Only */}
+              {
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold mb-3 border-b pb-2">
+                    Group Management
+                  </h4>
+                  <div className="space-y-4">
+                    <button
+                      className="w-full py-2 px-4 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center justify-center"
+                      // onClick={handleEditGroupInfo}
+                    >
+                      <span className="mr-2">Edit Group Info</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+
+                    <button
+                      className="w-full py-2 px-4 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center justify-center"
+                      // onClick={handleGroupSettings}
+                    >
+                      <span className="mr-2">Group Settings</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
+
+              {/* Danger Zone - Admin Only */}
+              {
+                <div>
+                  <h4 className="text-lg font-semibold mb-3 text-red-600 border-b border-red-200 pb-2">
+                    Danger Zone
+                  </h4>
+                  <div className="space-y-4">
+                    <button
+                      className="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700 flex items-center justify-center"
+                      // onClick={handleArchiveGroup}
+                    >
+                      <span className="mr-2">Archive Group</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                        <path
+                          fillRule="evenodd"
+                          d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+
+                    <button
+                      className="w-full py-2 px-4 bg-red-600 text-white rounded hover:bg-red-700 flex items-center justify-center"
+                      // onClick={handleDeleteGroup}
+                    >
+                      <span className="mr-2">Delete Group</span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              }
             </div>
           )}
         </div>

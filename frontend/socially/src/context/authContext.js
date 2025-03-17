@@ -4,6 +4,7 @@ import axios from "axios";
 import { useLoader } from "./loaderContext";
 import { showToast } from "./toastService";
 import { jwtDecode } from "jwt-decode";
+import { useStoreContext } from "./storeContext";
 
 // Create authentication context
 const AuthContext = createContext(null);
@@ -19,6 +20,8 @@ export const AuthProvider = ({ children }) => {
     if (storedUser) {
       setUser(storedUser);
     }
+
+    
   }, []);
 
   const login = async (email, password) => {
@@ -138,7 +141,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, signup, googleLogin }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, signup, googleLogin }}
+    >
       {children}
     </AuthContext.Provider>
   );

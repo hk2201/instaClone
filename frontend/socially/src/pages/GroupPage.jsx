@@ -29,7 +29,7 @@ const GroupPage = () => {
   const [tempGroupId, settempGroupId] = useState();
   const { setIsLoading } = useLoader();
 
-  const { user } = useAuth(); // Get logged-in user from context
+  const { user, logout } = useAuth(); // Get logged-in user from context
   const { groupData, updateGroupData } = useStoreContext();
 
   useEffect(() => {
@@ -51,8 +51,11 @@ const GroupPage = () => {
         // console.log("Response data:", response.data);
         // console.log("Groups data:", response.data.data);
       } catch (error) {
-        showToast("Error fetching groups", "error");
-        console.error("Error fetching groups:", error);
+        logout();
+        showToast(
+          `${error.response.data.message} please log in again`,
+          "error"
+        );
       } finally {
         setIsLoading(false);
       }
@@ -62,7 +65,7 @@ const GroupPage = () => {
       fetchGroups(); // Fetch groups when the user is logged in
     }
   }, [user]); // Runs when the user state changes
-  
+
   const addMember = () => {
     if (inviteInput && !members.includes(inviteInput)) {
       setMembers([...members, inviteInput]);
