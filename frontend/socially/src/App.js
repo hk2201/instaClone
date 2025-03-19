@@ -21,7 +21,7 @@ function App() {
             <Routes>
               <Route index element={<LoginPage />} />
               <Route
-                path="/posts"
+                path="/posts/:groupId"
                 element={
                   <ProtectedRoute>
                     <Posts />

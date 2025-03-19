@@ -1,8 +1,10 @@
 import { createContext, useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLoader } from "../context/loaderContext";
 // import { useAuth } from "./authContext";
 import { showToast } from "../context/toastService";
 import axios from "axios";
+
 const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
@@ -11,7 +13,9 @@ export const StoreProvider = ({ children }) => {
   const { setIsLoading } = useLoader();
   const [currentGroup, setCurrentGroup] = useState();
   const [members, setMembers] = useState([]);
+  const [posts, setPosts] = useState([]);
   // const { user } = useAuth();
+  const navigate = useNavigate();
 
   const addNewMembers = async (upData, groupId) => {
     setIsLoading(true);
@@ -31,6 +35,27 @@ export const StoreProvider = ({ children }) => {
       showToast("New Members added", "success");
     } catch (error) {
       showToast(`${error.response.data.message}`, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchPosts = async (groupId) => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token"); // Get token from localStorage
+      const response = await axios.get(process.env.REACT_APP_GET_POSTS, {
+        params: { groupId },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // setPosts(response.data.data);
+      console.log(response.data);
+      navigate(`/posts/${groupId}`);
+    } catch (error) {
+      showToast(`${error.response.data.message}`, "error");
+      // console.error("Error updating groups:", error);
     } finally {
       setIsLoading(false);
     }
@@ -131,6 +156,7 @@ export const StoreProvider = ({ children }) => {
     updateMembers,
     updateCurrentGroup,
     updateNewMembers,
+    fetchPosts,
   };
 
   return (

@@ -8,16 +8,19 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
+  id           String       @id @default(uuid())
+  email        String       @unique
   passwordHash String?
   username     String
   lastname     String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  memberships  Membership[]  // Relation to groups through memberships
-  ownedGroups  Group[]       // Groups created by this user
-  image        String?       // Added image field for user profile image
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  memberships  Membership[] // Relation to groups through memberships
+  ownedGroups  Group[] // Groups created by this user
+  posts        Post[] // Posts created by this user
+  comments     Comment[] // Comments made by this user
+  likes        Like[] // Likes made by this user
+  image        String? // Added image field for user profile image
 
   @@map("users")
 }
@@ -26,13 +29,13 @@ model Group {
   id          String       @id @default(uuid())
   name        String
   description String?
-  image       String?      // Added image field for group
+  image       String? // Added image field for group
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   creatorId   String
   creator     User         @relation(fields: [creatorId], references: [id])
   memberships Membership[] // All members of this group
-  posts       Post[]       // Added posts relation
+  posts       Post[] // Added posts relation
 
   @@map("groups")
 }
@@ -44,27 +47,63 @@ model Membership {
   role     Role     @default(MEMBER)
   joinedAt DateTime @default(now())
 
-  user     User     @relation(fields: [email], references: [email], onDelete: Cascade) // ✅ Corrected to reference User.email
-  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [email], references: [email], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([email, groupId]) // A user can only be a member of a group once
   @@map("memberships")
 }
 
-
 model Post {
+  id        String     @id @default(uuid())
+  caption   String? // Caption for the post
+  content   String? // Optional text content
+  mediaUrl  String? // URL to media (image/video)
+  mediaType MediaType? // Type of media
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  groupId   String
+  group     Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments  Comment[] // Comments on this post
+  likes     Like[] // Likes on this post
+
+  @@map("posts")
+}
+
+model Comment {
   id        String   @id @default(uuid())
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  groupId   String
-  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
-  @@map("posts")
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId]) // Ensures a user can only like a post once
+  @@map("likes")
 }
 
 enum Role {
   ADMIN
   MODERATOR
   MEMBER
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
 }

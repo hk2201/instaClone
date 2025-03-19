@@ -11,8 +11,6 @@ install --> npm init -y
 npm install express @prisma/client bcryptjs dotenv jsonwebtoken cors helmet
 npm install -D prisma nodemon
 
-
 Initialize Prisma --> npx prisma init
 
 Database Migrate --> npx prisma migrate dev --name init
-

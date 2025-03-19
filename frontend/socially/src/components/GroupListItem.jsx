@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Settings, ArrowRight, Bell } from "lucide-react";
 import { Toaster, toast } from "sonner";
+import { useStoreContext } from "../context/storeContext";
 
 const GroupListItem = ({ groupID, group, modalHandle }) => {
   const [isBellActive, setIsBellActive] = useState(false);
+  const { fetchPosts } = useStoreContext();
 
   function handleClick() {
     modalHandle(true, groupID);
@@ -20,6 +22,10 @@ const GroupListItem = ({ groupID, group, modalHandle }) => {
         duration: 3000,
       }
     );
+  }
+
+  function handleChange() {
+    fetchPosts(groupID);
   }
 
   return (
@@ -62,7 +68,10 @@ const GroupListItem = ({ groupID, group, modalHandle }) => {
           >
             <Settings className="w-5 h-5" />
           </button>
-          <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors">
+          <button
+            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+            onClick={handleChange}
+          >
             <ArrowRight className="w-5 h-5" />
           </button>
         </div>

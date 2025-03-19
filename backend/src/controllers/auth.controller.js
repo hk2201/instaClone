@@ -674,6 +674,145 @@ export const updateNewMembers = async (req, res) => {
   }
 };
 
+//========================GET_POSTS==================================================//
+
+export const getPosts = async (req, res) => {
+  try {
+    const groupId = req.query.groupId;
+
+    if (!groupId) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json(
+          new APIResponse(HttpStatus.NOT_FOUND, null, "groupId not provided")
+        );
+    }
+
+    // Check if the group exists
+    const existingGroup = await prisma.group.findUnique({
+      where: { id: groupId }, // Make sure to use "id" not "groupId"
+      include: {
+        memberships: true,
+        creator: {
+          select: { id: true, email: true },
+        },
+      },
+    });
+
+    if (!existingGroup) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json(new APIResponse(HttpStatus.NOT_FOUND, null, "group not found"));
+    }
+
+    // Get all posts for this group with their authors, comments, and likes
+    const posts = await prisma.post.findMany({
+      where: { groupId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            image: true,
+          },
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        likes: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // Format posts for frontend consumption
+    const formattedPosts = posts.map((post) => {
+      // Format comments
+      const formattedComments = post.comments.map((comment) => ({
+        id: comment.id,
+        content: comment.content,
+        createdAt: comment.createdAt,
+        author: {
+          id: comment.author.id,
+          name: comment.author.username || "Unknown",
+          lastname: comment.author.lastname || "Unknown",
+          image: comment.author.image || "/api/placeholder/48/48",
+        },
+      }));
+
+      // Format likes
+      const formattedLikes = post.likes.map((like) => ({
+        id: like.id,
+        userId: like.user.id,
+        userName: like.user.username || "Unknown",
+      }));
+
+      // Return formatted post
+      return {
+        id: post.id,
+        caption: post.caption || "",
+        content: post.content || "",
+        mediaUrl: post.mediaUrl || null,
+        mediaType: post.mediaType || null,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        group: {
+          id: post.groupId,
+          name: existingGroup.name,
+        },
+        author: {
+          id: post.author.id,
+          name: post.author.username || "Unknown",
+          lastname: post.author.lastname || "Unknown",
+          email: post.author.email,
+          image: post.author.image || "/api/placeholder/48/48",
+        },
+        comments: formattedComments,
+        commentCount: formattedComments.length,
+        likes: formattedLikes,
+        likeCount: formattedLikes.length,
+      };
+    });
+
+    return res
+      .status(HttpStatus.OK)
+      .json(
+        new APIResponse(
+          HttpStatus.OK,
+          formattedPosts,
+          "Posts retrieved successfully"
+        )
+      );
+  } catch (error) {
+    console.error("Error Fetching Posts", error);
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
 //========================UPDATE_GROUP_INFO==================================================//
 
 export const updateGroupInfo = async (req, res) => {

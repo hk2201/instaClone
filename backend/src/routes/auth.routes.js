@@ -9,6 +9,7 @@ import {
   deleteMember,
   updateAdmin,
   updateNewMembers,
+  getPosts,
 } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middlewares/auth.js";
 
@@ -32,5 +33,7 @@ router.delete("/deleteMember", authMiddleware, deleteMember);
 router.put("/updateAdmin", authMiddleware, updateAdmin);
 
 router.put("/updateNewMembers", authMiddleware, updateNewMembers);
+
+router.get("/getPosts", authMiddleware, getPosts);
 
 export default router;
