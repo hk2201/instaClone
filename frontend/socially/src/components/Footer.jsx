@@ -24,6 +24,7 @@ function Footer({ getImage }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isCameraMode, setIsCameraMode] = useState(false);
+  const [caption, setCaption] = useState("");
   const cropperRef = useRef(null);
   const webcamRef = useRef(null);
 
@@ -60,6 +61,10 @@ function Footer({ getImage }) {
   const handleOpenGallery = () => {
     setIsCameraMode(false);
     setSelectedImage(null);
+  };
+
+  const handleInputChange = (e) => {
+    setCaption(e.target.value);
   };
 
   return (
@@ -187,6 +192,25 @@ function Footer({ getImage }) {
                     ref={cropperRef}
                     viewMode={2}
                   />
+                </div>
+                <div className="w-full space-y-4">
+                  <div>
+                    <label
+                      htmlFor="caption"
+                      className="block mb-2 text-sm font-medium text-gray-900"
+                    >
+                      Caption
+                    </label>
+                    <textarea
+                      id="caption"
+                      name="caption"
+                      value={caption}
+                      onChange={handleInputChange}
+                      rows="3"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                      placeholder="Add a caption for your image (optional)"
+                    />
+                  </div>
                 </div>
                 <div className="flex justify-between w-full">
                   <button

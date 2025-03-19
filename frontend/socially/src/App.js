@@ -9,6 +9,7 @@ import Loader from "./components/Loader";
 import { LoaderProvider } from "./context/loaderContext";
 import { Toaster } from "sonner";
 import { StoreProvider } from "./context/storeContext";
+import { PostProvider } from "./context/postContext";
 
 function App() {
   return (
@@ -16,36 +17,38 @@ function App() {
       <LoaderProvider>
         <Loader />
         <StoreProvider>
-          <AuthProvider>
-            <Toaster richColors position="top-right" />
-            <Routes>
-              <Route index element={<LoginPage />} />
-              <Route
-                path="/posts/:groupId"
-                element={
-                  <ProtectedRoute>
-                    <Posts />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/groups"
-                element={
-                  <ProtectedRoute>
-                    <GroupPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/chats"
-                element={
-                  <ProtectedRoute>
-                    <Chat />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </AuthProvider>
+          <PostProvider>
+            <AuthProvider>
+              <Toaster richColors position="top-right" />
+              <Routes>
+                <Route index element={<LoginPage />} />
+                <Route
+                  path="/posts/:groupId"
+                  element={
+                    <ProtectedRoute>
+                      <Posts />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/groups"
+                  element={
+                    <ProtectedRoute>
+                      <GroupPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/chats"
+                  element={
+                    <ProtectedRoute>
+                      <Chat />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </AuthProvider>
+          </PostProvider>
         </StoreProvider>
       </LoaderProvider>
     </BrowserRouter>

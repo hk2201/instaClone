@@ -51,10 +51,10 @@ export const StoreProvider = ({ children }) => {
         },
       });
       // setPosts(response.data.data);
-      console.log(response.data);
       navigate(`/posts/${groupId}`);
     } catch (error) {
       showToast(`${error.response.data.message}`, "error");
+      navigate(`/groups`);
       // console.error("Error updating groups:", error);
     } finally {
       setIsLoading(false);

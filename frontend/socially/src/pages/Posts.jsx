@@ -1,20 +1,24 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import PostCards from "../components/PostCards";
+import { useStoreContext } from "../context/storeContext";
+import { usePostContext } from "../context/postContext";
 
 function HomePage() {
-  const [dum, setDum] = useState([
-    { img: "/images.jpeg" },
-    { img: "/images.jpeg" },
-    { img: "/images.jpeg" },
-  ]);
+  const navigate = useNavigate();
+  const { groupId } = useParams();
+  const { fetchPosts } = useStoreContext();
+  const { addDum, post } = usePostContext();
 
   function receiveImage(val) {
-    setDum((prevDum) => [...prevDum, { img: val }]); // Update state correctly
+    addDum(val); // Update state correctly
   }
 
-  useEffect(() => {}, [dum]); // Runs when `dum` updates
+  useEffect(() => {
+    fetchPosts(groupId);
+  }, [post]); // Runs when `dum` updates
 
   return (
     <div className="flex justify-center items-center h-screen">
@@ -24,9 +28,9 @@ function HomePage() {
         <div className="flex-1 flex flex-col items-center bg-indigo-100 rounded-xl overflow-y-auto p-4">
           <div className="flex flex-cols">
             <div>
-              {dum.map((d, index) => (
+              {post.map((d, index) => (
                 <div className="mb-4">
-                  <PostCards key={index} img={d.img} />
+                  <PostCards key={index} pData={d} />
                 </div>
               ))}
             </div>

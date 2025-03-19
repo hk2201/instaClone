@@ -3,8 +3,7 @@ import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
 
 const Postcards = (props) => {
   const [isLiked, setIsLiked] = useState(false);
-  const [likes, setLikes] = useState(128);
-
+  const [likes, setLikes] = useState(props.pData.likeCount);
   const handleLike = () => {
     setIsLiked(!isLiked);
     setLikes(isLiked ? likes - 1 : likes + 1);
@@ -14,16 +13,18 @@ const Postcards = (props) => {
     <div className="max-w-md bg-white rounded-lg shadow-md">
       <div className="flex items-center p-4">
         <img
-          src={props.img}
+          src={props.pData.mediaUrl}
           alt="Profile"
           className="w-8 h-8 rounded-full object-cover"
         />
-        <span className="ml-3 font-semibold">username</span>
+        <span className="ml-3 font-semibold">
+          {props.pData.author.name} {props.pData.author.lastname}
+        </span>
         <button className="ml-auto text-gray-500">•••</button>
       </div>
 
       <img
-        src={props.img}
+        src={props.pData.mediaUrl}
         alt="Post"
         className="w-full aspect-square object-cover"
       />
@@ -51,8 +52,10 @@ const Postcards = (props) => {
         <p className="mt-2 font-semibold">{likes.toLocaleString()} likes</p>
 
         <p className="mt-1">
-          <span className="font-semibold">username</span> This is a sample
-          caption for the Instagram post...
+          <span className="font-semibold">
+            {props.pData.author.name} {props.pData.author.lastname}
+          </span>{" "}
+          This is a sample caption for the Instagram post...
         </p>
 
         <p className="mt-2 text-gray-500">View all 24 comments</p>
