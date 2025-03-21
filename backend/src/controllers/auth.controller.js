@@ -3,7 +3,6 @@ import jwt from "jsonwebtoken";
 import prisma from "../prisma.js";
 import { APIResponse } from "../utils/apiResponse.js";
 import { HttpStatus } from "../utils/httpStatus.js";
-import { Role } from "@prisma/client";
 
 const saltRounds = 10;
 
@@ -707,7 +706,7 @@ export const getPosts = async (req, res) => {
 
     // Get all posts for this group with their authors, comments, and likes
     const posts = await prisma.post.findMany({
-      where: { groupId },
+      where: { groupId: groupId },
       include: {
         author: {
           select: {
@@ -810,6 +809,85 @@ export const getPosts = async (req, res) => {
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
+//========================ADD_POST==================================================//
+
+export const addPost = async (req, res) => {
+  const data = req.body;
+  const groupId = data.groupId;
+
+  try {
+    if (!data.groupId || !data.authorId || !data.authorEmail) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(new APIResponse(HttpStatus.BAD_REQUEST, null, "Missing Data"));
+    }
+
+    // Check if the group exists
+    const existingGroup = await prisma.group.findUnique({
+      where: { id: groupId },
+      include: {
+        memberships: true,
+        creator: {
+          select: { id: true, email: true },
+        },
+      },
+    });
+
+    if (!existingGroup) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json(new APIResponse(HttpStatus.NOT_FOUND, null, "Group not found"));
+    }
+
+    // Create the post with data from the request
+    const newPost = await prisma.post.create({
+      data: {
+        caption: data.caption,
+        mediaUrl: req.file.buffer.toString("base64"),
+        mediaType: "IMAGE",
+        groupId: data.groupId,
+        authorId: data.authorId,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            image: true,
+          },
+        },
+        group: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return res
+      .status(HttpStatus.CREATED)
+      .json(
+        new APIResponse(
+          HttpStatus.CREATED,
+          newPost,
+          "Post created successfully"
+        )
+      );
+  } catch (error) {
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(
+        new APIResponse(
+          HttpStatus.INTERNAL_ERROR,
+          null,
+          "Failed to create post"
+        )
+      );
   }
 };
 

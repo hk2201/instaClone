@@ -13,7 +13,7 @@ const Postcards = (props) => {
     <div className="max-w-md bg-white rounded-lg shadow-md">
       <div className="flex items-center p-4">
         <img
-          src={props.pData.mediaUrl}
+          src={props.pData.author.image}
           alt="Profile"
           className="w-8 h-8 rounded-full object-cover"
         />
@@ -55,7 +55,7 @@ const Postcards = (props) => {
           <span className="font-semibold">
             {props.pData.author.name} {props.pData.author.lastname}
           </span>{" "}
-          This is a sample caption for the Instagram post...
+          {props.pData.caption}
         </p>
 
         <p className="mt-2 text-gray-500">View all 24 comments</p>

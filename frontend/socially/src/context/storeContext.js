@@ -50,11 +50,35 @@ export const StoreProvider = ({ children }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-      // setPosts(response.data.data);
+      setPosts(response.data.data);
       navigate(`/posts/${groupId}`);
     } catch (error) {
       showToast(`${error.response.data.message}`, "error");
       navigate(`/groups`);
+      // console.error("Error updating groups:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const addPost = async (newPost) => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token"); // Get token from localStorage
+      const response = await axios.post(
+        process.env.REACT_APP_ADD_POST,
+        newPost,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      showToast(`${response.data.message}`, "success");
+      // setPosts(response.data.data);
+    } catch (error) {
+      showToast(`${error.response.data.message}`, "error");
       // console.error("Error updating groups:", error);
     } finally {
       setIsLoading(false);
@@ -157,6 +181,8 @@ export const StoreProvider = ({ children }) => {
     updateCurrentGroup,
     updateNewMembers,
     fetchPosts,
+    addPost,
+    posts,
   };
 
   return (

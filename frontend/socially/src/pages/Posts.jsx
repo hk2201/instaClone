@@ -10,15 +10,16 @@ function HomePage() {
   const navigate = useNavigate();
   const { groupId } = useParams();
   const { fetchPosts } = useStoreContext();
-  const { addDum, post } = usePostContext();
+  const { addDum } = usePostContext();
+  const { posts } = useStoreContext();
 
-  function receiveImage(val) {
-    addDum(val); // Update state correctly
+  function receiveImage(img, caption) {
+    addDum(img, caption, groupId); // Update state correctly
   }
 
   useEffect(() => {
     fetchPosts(groupId);
-  }, [post]); // Runs when `dum` updates
+  }, []); // Runs when `dum` updates
 
   return (
     <div className="flex justify-center items-center h-screen">
@@ -28,7 +29,7 @@ function HomePage() {
         <div className="flex-1 flex flex-col items-center bg-indigo-100 rounded-xl overflow-y-auto p-4">
           <div className="flex flex-cols">
             <div>
-              {post.map((d, index) => (
+              {posts.map((d, index) => (
                 <div className="mb-4">
                   <PostCards key={index} pData={d} />
                 </div>

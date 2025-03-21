@@ -7,7 +7,7 @@ import {
   Image,
 } from "lucide-react";
 import { CirclePlus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useRef, useCallback } from "react";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
@@ -41,7 +41,7 @@ function Footer({ getImage }) {
       const croppedImageData = cropperRef.current.cropper
         .getCroppedCanvas()
         .toDataURL();
-      getImage(croppedImageData);
+      getImage(croppedImageData, caption);
     }
     setIsModalOpen(false);
     setSelectedImage(null);

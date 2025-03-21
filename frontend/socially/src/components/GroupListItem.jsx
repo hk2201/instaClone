@@ -26,6 +26,7 @@ const GroupListItem = ({ groupID, group, modalHandle }) => {
 
   function handleChange() {
     fetchPosts(groupID);
+    // navigate(`/posts/${groupId}`); // Remove from store context later
   }
 
   return (
