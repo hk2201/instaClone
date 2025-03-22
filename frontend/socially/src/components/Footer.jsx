@@ -30,6 +30,7 @@ function Footer({ getImage }) {
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
+    setSelectedImage(file);
     if (file) {
       const imageBlob = URL.createObjectURL(file);
       setSelectedImage(imageBlob);
@@ -41,6 +42,7 @@ function Footer({ getImage }) {
       const croppedImageData = cropperRef.current.cropper
         .getCroppedCanvas()
         .toDataURL();
+
       getImage(croppedImageData, caption);
     }
     setIsModalOpen(false);

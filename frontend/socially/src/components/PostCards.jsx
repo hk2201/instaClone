@@ -10,7 +10,7 @@ const Postcards = (props) => {
   };
 
   return (
-    <div className="max-w-md bg-white rounded-lg shadow-md">
+    <div className="w-full sm:w-96 md:w-md lg:w-md bg-white rounded-lg shadow-md">
       <div className="flex items-center p-4">
         <img
           src={props.pData.author.image}

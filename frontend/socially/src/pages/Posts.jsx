@@ -19,7 +19,7 @@ function HomePage() {
 
   useEffect(() => {
     fetchPosts(groupId);
-  }, []); // Runs when `dum` updates
+  }, []);
 
   return (
     <div className="flex justify-center items-center h-screen">

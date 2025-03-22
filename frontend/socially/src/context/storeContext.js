@@ -76,10 +76,9 @@ export const StoreProvider = ({ children }) => {
         }
       );
       showToast(`${response.data.message}`, "success");
-      // setPosts(response.data.data);
+      fetchPosts(newPost.group.id);
     } catch (error) {
       showToast(`${error.response.data.message}`, "error");
-      // console.error("Error updating groups:", error);
     } finally {
       setIsLoading(false);
     }

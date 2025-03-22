@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../prisma.js";
 import { APIResponse } from "../utils/apiResponse.js";
 import { HttpStatus } from "../utils/httpStatus.js";
+import cloudinary from "../config/claudinary.js";
 
 const saltRounds = 10;
 
@@ -127,7 +128,6 @@ export const googlelogin = async (req, res) => {
       })
     );
   } catch (error) {
-    console.error("Google Login Error:", error);
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
@@ -139,7 +139,6 @@ export const googlelogin = async (req, res) => {
 export const getGroups = async (req, res) => {
   try {
     const userEmail = req.user.email; // Using 'email' instead of 'id'
-    // console.log(userEmail);
     // Fetch groups the user is part of
     const groups = await prisma.group.findMany({
       where: {
@@ -199,7 +198,6 @@ export const getGroups = async (req, res) => {
       .status(HttpStatus.OK)
       .json(new APIResponse(HttpStatus.OK, formattedGroups));
   } catch (error) {
-    console.error("Error fetching groups:", error);
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
@@ -211,7 +209,6 @@ export const getGroups = async (req, res) => {
 export const postGroups = async (req, res) => {
   try {
     const { groupName, description, image, members } = req.body;
-    // console.log(req.body);
     const creatorEmail = req.user.email; // Get creator's email
 
     // Create the group with memberships using emails
@@ -237,7 +234,6 @@ export const postGroups = async (req, res) => {
       .status(HttpStatus.CREATED)
       .json(new APIResponse(HttpStatus.CREATED, newGroup));
   } catch (error) {
-    console.error("Error creating group:", error);
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
@@ -418,7 +414,6 @@ export const updateAdmin = async (req, res) => {
         )
       );
   } catch (error) {
-    console.error("Error updating member role", error);
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
@@ -539,7 +534,6 @@ export const deleteMember = async (req, res) => {
         )
       );
   } catch (error) {
-    console.error("Error removing member", error);
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
@@ -666,7 +660,6 @@ export const updateNewMembers = async (req, res) => {
       .status(HttpStatus.OK)
       .json(new APIResponse(HttpStatus.OK, members, "New members processed"));
   } catch (error) {
-    console.error("Error adding new members", error);
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
@@ -712,6 +705,7 @@ export const getPosts = async (req, res) => {
           select: {
             id: true,
             username: true,
+            lastname: true,
             email: true,
             image: true,
           },
@@ -722,6 +716,7 @@ export const getPosts = async (req, res) => {
               select: {
                 id: true,
                 username: true,
+                lastname: true,
                 image: true,
               },
             },
@@ -805,7 +800,6 @@ export const getPosts = async (req, res) => {
         )
       );
   } catch (error) {
-    console.error("Error Fetching Posts", error);
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
@@ -815,11 +809,8 @@ export const getPosts = async (req, res) => {
 //========================ADD_POST==================================================//
 
 export const addPost = async (req, res) => {
-  const data = req.body;
-  const groupId = data.groupId;
-
   try {
-    if (!data.groupId || !data.authorId || !data.authorEmail) {
+    if (!req.body.group.id || !req.body.author.id || !req.body.author.email) {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json(new APIResponse(HttpStatus.BAD_REQUEST, null, "Missing Data"));
@@ -827,7 +818,7 @@ export const addPost = async (req, res) => {
 
     // Check if the group exists
     const existingGroup = await prisma.group.findUnique({
-      where: { id: groupId },
+      where: { id: req.body.group.id },
       include: {
         memberships: true,
         creator: {
@@ -845,11 +836,11 @@ export const addPost = async (req, res) => {
     // Create the post with data from the request
     const newPost = await prisma.post.create({
       data: {
-        caption: data.caption,
-        mediaUrl: req.file.buffer.toString("base64"),
+        caption: req.body.caption,
+        mediaUrl: req.body.mediaUrl,
         mediaType: "IMAGE",
-        groupId: data.groupId,
-        authorId: data.authorId,
+        groupId: req.body.group.id,
+        authorId: req.body.author.id,
       },
       include: {
         author: {
@@ -857,6 +848,7 @@ export const addPost = async (req, res) => {
             id: true,
             email: true,
             username: true,
+            lastname: true,
             image: true,
           },
         },
@@ -889,6 +881,24 @@ export const addPost = async (req, res) => {
         )
       );
   }
+};
+
+//========================SEND_SGINED_REQUEST_FOR_UPLOAD==================================================//
+
+export const get_upload_signature = async (req, res) => {
+  const timestamp = Math.floor(Date.now() / 1000);
+
+  const signature = cloudinary.utils.api_sign_request(
+    { timestamp },
+    process.env.CLOUD_API_SECRET
+  );
+
+  res.json({
+    timestamp,
+    signature,
+    apiKey: process.env.CLOUD_API_KEY,
+    cloudName: process.env.CLOUD_NAME,
+  });
 };
 
 //========================UPDATE_GROUP_INFO==================================================//
@@ -994,7 +1004,6 @@ export const updateGroupInfo = async (req, res) => {
       .status(HttpStatus.OK)
       .json(new APIResponse(HttpStatus.OK, formattedGroup));
   } catch (error) {
-    console.error("Error updating group info:", error);
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));

@@ -10,32 +10,7 @@ const PostContext = createContext();
 export const PostProvider = ({ children }) => {
   const { setIsLoading } = useLoader();
   const { addPost } = useStoreContext();
-  const [post, setPost] = useState([
-    {
-      id: 123123,
-      caption: "" | "Empty",
-      content: "" | "Empty",
-      mediaUrl: "https://shorturl.at/ki9EJ",
-      mediaType: "image" || null,
-      createdAt: 12,
-      updatedAt: 21,
-      group: {
-        id: 123123,
-        name: "Something",
-      },
-      author: {
-        id: 123123,
-        name: "Harshad" || "Unknown",
-        lastname: "Khandare" || "Unknown",
-        email: "hk@gmail.com",
-        image: "sdfsdf" || "/api/placeholder/48/48",
-      },
-      comments: [],
-      commentCount: 12,
-      likes: [],
-      likeCount: 123,
-    },
-  ]);
+  const [post, setPost] = useState([]);
 
   const base64ToBlob = (base64Data) => {
     const [meta, data] = base64Data.split(",");
@@ -48,59 +23,60 @@ export const PostProvider = ({ children }) => {
     return new Blob([byteArray], { type: contentType });
   };
 
-  function addDum(upData, cap, groupId) {
+  const uploadCloud = async (upData) => {
+    var imgaURL;
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const sigRes = await axios.get(process.env.REACT_APP_UPLOAD_CLOUD, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const { signature, timestamp, apiKey, cloudName } = sigRes.data;
+      const blob = base64ToBlob(upData);
+
+      const uploadCloud = new FormData();
+      uploadCloud.append("file", blob);
+      uploadCloud.append("api_key", apiKey);
+      uploadCloud.append("timestamp", timestamp);
+      uploadCloud.append("signature", signature);
+
+      const uploadRes = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        uploadCloud
+      );
+
+      const result = uploadRes.data;
+      imgaURL = result.secure_url;
+      return imgaURL;
+    } catch (error) {
+      showToast(`${error.response.data.message}`, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  async function addDum(upData, cap, groupId) {
     const userData = JSON.parse(localStorage.getItem("user"));
-    const blob = base64ToBlob(upData);
-    const formData = new FormData();
-    formData.append("image", blob, "photo.png");
-    formData.append("caption", cap);
-    formData.append("mediaType", "image");
-    formData.append("groupId", groupId);
-    formData.append("authorId", userData.userId);
-    formData.append("authorEmail", userData.email);
+    const imageURL = await uploadCloud(upData);
 
-    // const newPost = {
-    //   caption: cap,
-    //   mediaUrl: formData,
-    //   mediaType: "image",
-    //   group: {
-    //     id: groupId,
-    //   },
-    //   author: {
-    //     id: userData.userId,
-    //     email: userData.email,
-    //   },
-    // };
-
-    addPost(formData);
-
-    setPost((prevDum) => [
-      ...prevDum,
-      {
-        id: 123123,
-        caption: cap || "Empty",
-        content: "" | "Empty",
-        mediaUrl: upData,
-        mediaType: "image" || null,
-        createdAt: 12,
-        updatedAt: 21,
-        group: {
-          id: 123123,
-          name: "Something",
-        },
-        author: {
-          id: 123123,
-          name: "Harshad" || "Unknown",
-          lastname: "Khandare" || "Unknown",
-          email: "hk@gmail.com",
-          image: "sdfsdf" || "/api/placeholder/48/48",
-        },
-        comments: [],
-        commentCount: 12,
-        likes: [],
-        likeCount: 123,
+    const newPost = {
+      caption: cap,
+      mediaUrl: imageURL,
+      mediaType: "image",
+      group: {
+        id: groupId,
       },
-    ]);
+      author: {
+        id: userData.userId,
+        email: userData.email,
+      },
+    };
+
+    addPost(newPost);
+
+    setPost((prevDum) => [...prevDum, newPost]);
   }
 
   const value = { addDum, post };
