@@ -79,7 +79,29 @@ export const PostProvider = ({ children }) => {
     setPost((prevDum) => [...prevDum, newPost]);
   }
 
-  const value = { addDum, post };
+  const updateLikes = async (id) => {
+    try {
+      const token = localStorage.getItem("token"); // Get token from localStorage
+      const response = await axios.post(
+        process.env.REACT_APP_UPDATE_LIKES,
+        { postId: id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      // setGroupData(response.data.data);
+      // console.log("Full API response:", response);
+      // console.log("Response data:", response.data);
+      // console.log("Groups data:", response.data.data);
+    } catch (error) {
+      showToast(error.response.data.message, "error");
+      // console.error("Error updating groups:", error);
+    }
+  };
+
+  const value = { addDum, post, updateLikes };
 
   return <PostContext.Provider value={value}>{children}</PostContext.Provider>;
 };

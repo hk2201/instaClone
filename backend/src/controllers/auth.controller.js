@@ -901,6 +901,76 @@ export const get_upload_signature = async (req, res) => {
   });
 };
 
+//========================UPDATE_LIKES==================================================//
+
+export const updateLikes = async (req, res) => {
+  try {
+    const { postId } = req.body;
+   // from middleware
+    const userId = req.user?.id; 
+
+    if (!postId || !userId) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(
+          new APIResponse(
+            HttpStatus.BAD_REQUEST,
+            null,
+            "Missing postId or userId"
+          )
+        );
+    }
+
+    // Check if user has already liked the post
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        postId_userId: {
+          postId,
+          userId,
+        },
+      },
+    });
+
+    if (existingLike) {
+      await prisma.like.delete({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
+      });
+
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          new APIResponse(
+            HttpStatus.OK,
+            { liked: false },
+            "Unliked successfully"
+          )
+        );
+    } else {
+      await prisma.like.create({
+        data: {
+          postId,
+          userId,
+        },
+      });
+
+      return res
+        .status(HttpStatus.OK)
+        .json(
+          new APIResponse(HttpStatus.OK, { liked: true }, "Liked successfully")
+        );
+    }
+  } catch (error) {
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
 //========================UPDATE_GROUP_INFO==================================================//
 
 export const updateGroupInfo = async (req, res) => {
