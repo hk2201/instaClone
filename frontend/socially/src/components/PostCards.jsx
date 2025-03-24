@@ -1,12 +1,21 @@
 import React, { useState } from "react";
 import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
+import { usePostContext } from "../context/postContext";
+import { useAuth } from "../context/authContext";
 
 const Postcards = (props) => {
-  const [isLiked, setIsLiked] = useState(false);
+  const { user } = useAuth();
+  const [isLiked, setIsLiked] = useState(
+    props.pData.likes?.some((like) => like.userId === user.userId)
+  );
+
   const [likes, setLikes] = useState(props.pData.likeCount);
+  const { updateLikes } = usePostContext();
+
   const handleLike = () => {
     setIsLiked(!isLiked);
     setLikes(isLiked ? likes - 1 : likes + 1);
+    updateLikes(props.pData.id);
   };
 
   return (
