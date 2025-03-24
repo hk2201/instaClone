@@ -906,8 +906,8 @@ export const get_upload_signature = async (req, res) => {
 export const updateLikes = async (req, res) => {
   try {
     const { postId } = req.body;
-    // Assuming userId is extracted from decoded JWT token
-    const userId = req.user?.id; // adjust based on your auth middleware
+   // from middleware
+    const userId = req.user?.id; 
 
     if (!postId || !userId) {
       return res
