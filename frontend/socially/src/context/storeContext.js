@@ -165,8 +165,31 @@ export const StoreProvider = ({ children }) => {
     );
   };
 
-  // Debug output
-  //   console.log("from context", groupData);
+  const getRelativeTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+    if (diffSeconds < 60) {
+      return rtf.format(-diffSeconds, "second");
+    } else if (diffSeconds < 3600) {
+      // 60 * 60
+      return rtf.format(-Math.floor(diffSeconds / 60), "minute");
+    } else if (diffSeconds < 86400) {
+      // 60 * 60 * 24
+      return rtf.format(-Math.floor(diffSeconds / 3600), "hour");
+    } else if (diffSeconds < 2592000) {
+      // 60 * 60 * 24 * 30
+      return rtf.format(-Math.floor(diffSeconds / 86400), "day");
+    } else if (diffSeconds < 31536000) {
+      // 60 * 60 * 24 * 365
+      return rtf.format(-Math.floor(diffSeconds / 2592000), "month");
+    } else {
+      return rtf.format(-Math.floor(diffSeconds / 31536000), "year");
+    }
+  };
 
   const value = {
     groupData,
@@ -182,6 +205,7 @@ export const StoreProvider = ({ children }) => {
     fetchPosts,
     addPost,
     posts,
+    getRelativeTime,
   };
 
   return (

@@ -1,16 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
 import { usePostContext } from "../context/postContext";
 import { useAuth } from "../context/authContext";
+import { useStoreContext } from "../context/storeContext";
 
 const Postcards = (props) => {
   const { user } = useAuth();
-  const [isLiked, setIsLiked] = useState(
-    props.pData.likes?.some((like) => like.userId === user.userId)
-  );
-
+  const [isLiked, setIsLiked] = useState(props.pData.likes?.some((like) => like.userId === user.userId));
   const [likes, setLikes] = useState(props.pData.likeCount);
   const { updateLikes } = usePostContext();
+  const { getRelativeTime } = useStoreContext();
+  const [timeAgo, settimeago] = useState();
+
+  useEffect(() => {
+    const time = getRelativeTime(props.pData.updatedAt);
+    settimeago(time);
+  }, []);
 
   const handleLike = () => {
     setIsLiked(!isLiked);
@@ -68,7 +73,7 @@ const Postcards = (props) => {
         </p>
 
         <p className="mt-2 text-gray-500">View all 24 comments</p>
-        <p className="mt-1 text-xs text-gray-400">2 HOURS AGO</p>
+        <p className="mt-1 text-xs text-gray-400">{timeAgo}</p>
       </div>
     </div>
   );
