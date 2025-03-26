@@ -71,42 +71,86 @@ function Footer({ getImage }) {
 
   return (
     <>
-      <div className="flex justify-center items-center w-full px-4 sm:space-x-60 space-x-10 border-t border-gray-200">
-        <button className="p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group">
-          <User className="w-8 sm:w-10 h-8 sm:h-10 group-hover:text-indigo-600" />
-        </button>
+      <div className="bottom-0 left-0 right-0 bg-white ">
+        <div className="flex justify-around items-center w-full px-4 py-2 sm:space-x-10 md:space-x-20 lg:space-x-40 space-x-4">
+          {/* Profile Button */}
+          <div className="flex flex-col items-center justify-center">
+            <button
+              className="p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group group flex flex-col items-center justify-center"
+              onClick={() => navigate("/profile/12")}
+            >
+              <img
+                // src={props.pData.author.image}
+                alt="Profile"
+                className="w-8 h-8 rounded-full object-cover"
+              />
+              <span className="text-xs mt-1 text-gray-600 group-hover:text-indigo-600 hidden sm:block">
+                Profile
+              </span>
+            </button>
+          </div>
 
-        <button
-          className="relative p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group"
-          onClick={() => navigate("/chats")}
-        >
-          <MessageCircle className="w-8 sm:w-10 h-8 sm:h-10 group-hover:text-indigo-600" />
-          <span className="absolute top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-            3
-          </span>
-        </button>
+          {/* Chats Button */}
+          <div className="flex flex-col items-center justify-center">
+            <button
+              className="relative p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group group flex flex-col items-center justify-center"
+              onClick={() => navigate("/chats")}
+            >
+              <div className="relative">
+                <MessageCircle className="w-6 sm:w-8 h-6 sm:h-8 group-hover:text-indigo-600" />
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  3
+                </span>
+              </div>
+              <span className="text-xs mt-1 text-gray-600 group-hover:text-indigo-600 hidden sm:block">
+                Chats
+              </span>
+            </button>
+          </div>
 
-        <button
-          className="bg-indigo-600 md:p-2 rounded-full shadow-lg hover:shadow-xl hover:bg-indigo-700 transition-all duration-300 hover:scale-105 group z-50"
-          onClick={() => setIsModalOpen(true)}
-          aria-label="Add new post"
-        >
-          <CirclePlus className="text-white" size={36} />
-          <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap pointer-events-none">
-            Add New Post
-          </span>
-        </button>
+          {/* Add Post Button */}
+          <div className="flex flex-col items-center justify-center">
+            <button
+              className="relative p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group flex flex-col items-center justify-center"
+              onClick={() => setIsModalOpen(true)}
+              aria-label="Add new post"
+            >
+              <CirclePlus className="w-7 sm:w-8 h-7 sm:h-8 group-hover:text-indigo-600" />
+              <span className="text-xs text-gray-600 group-hover:text-indigo-600 hidden sm:block mt-1">
+                Add Post
+              </span>
+            </button>
+          </div>
 
-        <button className="p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group">
-          <Settings className="w-8 sm:w-10 h-8 sm:h-10 group-hover:text-indigo-600" />
-        </button>
+          {/* Settings Button */}
+          <div className="flex flex-col items-center justify-center">
+            <button
+              className="relative p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group flex flex-col items-center justify-center"
+              onClick={() => navigate("/settings")}
+            >
+              <Settings className="w-6 sm:w-8 h-6 sm:h-8 group-hover:text-indigo-600" />
+              <span className="text-xs mt-1 text-gray-600 group-hover:text-indigo-600 hidden sm:block">
+                Settings
+              </span>
+            </button>
+          </div>
 
-        <button
-          className="p-2 sm:p-3 text-gray-600 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors group"
-          onClick={() => navigate("/groups")}
-        >
-          <LogOut className="w-8 sm:w-10 h-8 sm:h-10 group-hover:text-red-600" />
-        </button>
+          {/* Logout Button */}
+          <div className="flex flex-col items-center justify-center">
+            <button
+              className="p-2 sm:p-3 text-gray-600 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors group group flex flex-col items-center justify-center"
+              onClick={() => {
+                // Add logout logic here
+                navigate("/");
+              }}
+            >
+              <LogOut className="w-6 sm:w-8 h-6 sm:h-8 group-hover:text-red-600" />
+              <span className="text-xs mt-1 text-gray-600 group-hover:text-red-600 hidden sm:block">
+                Exit Group
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {isModalOpen && (

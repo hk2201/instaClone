@@ -3,6 +3,7 @@ import LoginPage from "./pages/LoginPage";
 import Posts from "./pages/Posts";
 import GroupPage from "./pages/GroupPage";
 import Chat from "./pages/Chat";
+import ProfilePage from "./pages/Profile";
 import { AuthProvider } from "./context/authContext";
 import ProtectedRoute from "./context/authGuard";
 import Loader from "./components/Loader";
@@ -43,6 +44,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Chat />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile/:profileId"
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
                     </ProtectedRoute>
                   }
                 />

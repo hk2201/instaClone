@@ -1,20 +1,20 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
+  ArrowLeft,
   Search,
   MoreVertical,
   Send,
   Phone,
   Video,
   ImagePlus,
-  ArrowLeft,
 } from "lucide-react";
+
+import Footer from "../components/Footer";
 
 const Chat = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [newMessage, setNewMessage] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const navigate = useNavigate();
 
   // Sample data
   const chats = [
@@ -89,12 +89,12 @@ const Chat = () => {
     <div
       className={`w-full md:w-80 bg-white h-full ${
         selectedChat !== null ? "hidden md:flex" : "flex"
-      } flex-col`}  
+      } flex-col`}
     >
       <div className="p-4 border-b">
         <div className="flex flex-cols gap-1 items-center">
           <div>
-            <button onClick={() => navigate("/posts")}>
+            <button>
               <ArrowLeft className="w-6 h-6" />
             </button>
           </div>
@@ -240,9 +240,15 @@ const Chat = () => {
   );
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <ChatList />
-      <ChatView />
+    <div className="flex flex-col h-screen overflow-hidden">
+      <div className="flex flex-1 overflow-hidden bg-gray-100">
+        <ChatList />
+        <ChatView />
+      </div>
+      {/* Hide footer on mobile screens */}
+      <div className="!hidden sm:!block border-t">
+        <Footer />
+      </div>
     </div>
   );
 };
