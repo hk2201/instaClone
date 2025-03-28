@@ -2,16 +2,17 @@ import {
   MessageCircle,
   LogOut,
   User,
-  Settings,
+  House,
   Camera,
   Image,
 } from "lucide-react";
 import { CirclePlus } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useState, useRef, useCallback } from "react";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
 import Webcam from "react-webcam";
+import { useStoreContext } from "../context/storeContext";
 
 const videoConstraints = {
   width: 1280,
@@ -21,12 +22,14 @@ const videoConstraints = {
 
 function Footer({ getImage }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isCameraMode, setIsCameraMode] = useState(false);
   const [caption, setCaption] = useState("");
   const cropperRef = useRef(null);
   const webcamRef = useRef(null);
+  const { groupId } = useStoreContext();
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -69,6 +72,11 @@ function Footer({ getImage }) {
     setCaption(e.target.value);
   };
 
+  // Helper function to determine if a route is active
+  const isRouteActive = (route) => {
+    return location.pathname.startsWith(route);
+  };
+
   return (
     <>
       <div className="bottom-0 left-0 right-0 bg-white ">
@@ -76,15 +84,27 @@ function Footer({ getImage }) {
           {/* Profile Button */}
           <div className="flex flex-col items-center justify-center">
             <button
-              className="p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group group flex flex-col items-center justify-center"
+              className={`p-2 sm:p-3 hover:bg-gray-100 rounded-full transition-colors group flex flex-col items-center justify-center ${
+                isRouteActive("/profile")
+                  ? "text-indigo-600 bg-indigo-50"
+                  : "text-gray-600"
+              }`}
               onClick={() => navigate("/profile/12")}
             >
-              <img
-                // src={props.pData.author.image}
-                alt="Profile"
-                className="w-8 h-8 rounded-full object-cover"
+              <User
+                className={`w-6 sm:w-8 h-6 sm:h-8 ${
+                  isRouteActive("/profile")
+                    ? "text-indigo-600"
+                    : "group-hover:text-indigo-600"
+                }`}
               />
-              <span className="text-xs mt-1 text-gray-600 group-hover:text-indigo-600 hidden sm:block">
+              <span
+                className={`text-xs mt-1 hidden sm:block ${
+                  isRouteActive("/profile")
+                    ? "text-indigo-600"
+                    : "text-gray-600 group-hover:text-indigo-600"
+                }`}
+              >
                 Profile
               </span>
             </button>
@@ -93,16 +113,32 @@ function Footer({ getImage }) {
           {/* Chats Button */}
           <div className="flex flex-col items-center justify-center">
             <button
-              className="relative p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group group flex flex-col items-center justify-center"
+              className={`relative p-2 sm:p-3 hover:bg-gray-100 rounded-full transition-colors group flex flex-col items-center justify-center ${
+                isRouteActive("/chats")
+                  ? "text-indigo-600 bg-indigo-50"
+                  : "text-gray-600"
+              }`}
               onClick={() => navigate("/chats")}
             >
               <div className="relative">
-                <MessageCircle className="w-6 sm:w-8 h-6 sm:h-8 group-hover:text-indigo-600" />
+                <MessageCircle
+                  className={`w-6 sm:w-8 h-6 sm:h-8 ${
+                    isRouteActive("/chats")
+                      ? "text-indigo-600"
+                      : "group-hover:text-indigo-600"
+                  }`}
+                />
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                   3
                 </span>
               </div>
-              <span className="text-xs mt-1 text-gray-600 group-hover:text-indigo-600 hidden sm:block">
+              <span
+                className={`text-xs mt-1 hidden sm:block ${
+                  isRouteActive("/chats")
+                    ? "text-indigo-600"
+                    : "text-gray-600 group-hover:text-indigo-600"
+                }`}
+              >
                 Chats
               </span>
             </button>
@@ -122,15 +158,31 @@ function Footer({ getImage }) {
             </button>
           </div>
 
-          {/* Settings Button */}
+          {/* Home/Posts Button */}
           <div className="flex flex-col items-center justify-center">
             <button
-              className="relative p-2 sm:p-3 text-gray-600 hover:bg-gray-100 rounded-full transition-colors group flex flex-col items-center justify-center"
-              onClick={() => navigate("/settings")}
+              className={`relative p-2 sm:p-3 hover:bg-gray-100 rounded-full transition-colors group flex flex-col items-center justify-center ${
+                isRouteActive(`/posts/${groupId}`)
+                  ? "text-indigo-600 bg-indigo-50"
+                  : "text-gray-600"
+              }`}
+              onClick={() => navigate(`/posts/${groupId}`)}
             >
-              <Settings className="w-6 sm:w-8 h-6 sm:h-8 group-hover:text-indigo-600" />
-              <span className="text-xs mt-1 text-gray-600 group-hover:text-indigo-600 hidden sm:block">
-                Settings
+              <House
+                className={`w-6 sm:w-8 h-6 sm:h-8 ${
+                  isRouteActive(`/posts/${groupId}`)
+                    ? "text-indigo-600"
+                    : "group-hover:text-indigo-600"
+                }`}
+              />
+              <span
+                className={`text-xs mt-1 hidden sm:block ${
+                  isRouteActive(`/posts/${groupId}`)
+                    ? "text-indigo-600"
+                    : "text-gray-600 group-hover:text-indigo-600"
+                }`}
+              >
+                Home
               </span>
             </button>
           </div>

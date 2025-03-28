@@ -14,8 +14,13 @@ export const StoreProvider = ({ children }) => {
   const [currentGroup, setCurrentGroup] = useState();
   const [members, setMembers] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [groupId, setGroupId] = useState();
   // const { user } = useAuth();
   const navigate = useNavigate();
+
+  const updateGroupId = (upData) => {
+    setGroupId(upData);
+  };
 
   const addNewMembers = async (upData, groupId) => {
     setIsLoading(true);
@@ -206,6 +211,8 @@ export const StoreProvider = ({ children }) => {
     addPost,
     posts,
     getRelativeTime,
+    updateGroupId,
+    groupId,
   };
 
   return (

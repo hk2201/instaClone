@@ -9,9 +9,8 @@ import { usePostContext } from "../context/postContext";
 function HomePage() {
   const navigate = useNavigate();
   const { groupId } = useParams();
-  const { fetchPosts } = useStoreContext();
+  const { fetchPosts, posts, updateGroupId } = useStoreContext();
   const { addDum } = usePostContext();
-  const { posts } = useStoreContext();
 
   function receiveImage(img, caption) {
     addDum(img, caption, groupId); // Update state correctly
@@ -19,6 +18,7 @@ function HomePage() {
 
   useEffect(() => {
     fetchPosts(groupId);
+    updateGroupId(groupId);
   }, []);
 
   return (
