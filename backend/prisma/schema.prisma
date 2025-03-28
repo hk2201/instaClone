@@ -12,6 +12,7 @@ model User {
   email        String       @unique
   passwordHash String?
   username     String
+  bio          String?
   lastname     String
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
@@ -21,6 +22,7 @@ model User {
   comments     Comment[] // Comments made by this user
   likes        Like[] // Likes made by this user
   image        String? // Added image field for user profile image
+  uname        String?
 
   @@map("users")
 }

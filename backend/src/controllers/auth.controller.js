@@ -906,8 +906,8 @@ export const get_upload_signature = async (req, res) => {
 export const updateLikes = async (req, res) => {
   try {
     const { postId } = req.body;
-   // from middleware
-    const userId = req.user?.id; 
+    // from middleware
+    const userId = req.user?.id;
 
     if (!postId || !userId) {
       return res
@@ -968,6 +968,97 @@ export const updateLikes = async (req, res) => {
     return res
       .status(HttpStatus.INTERNAL_ERROR)
       .json(new APIResponse(HttpStatus.INTERNAL_ERROR, null, error.message));
+  }
+};
+
+//========================GET_USER==================================================//
+
+export const getUser = async (req, res) => {
+  try {
+    const userDetails = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        email: true,
+        username: true,
+        lastname: true,
+        bio: true,
+        uname: true,
+        image: true,
+      },
+    });
+
+    if (!userDetails) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json(new APIResponse(HttpStatus.NOT_FOUND, null, "User not found"));
+    }
+
+    const data = {
+      profilePicture: userDetails.image || "/api/placeholder/200/200",
+      name: `${userDetails.username} ${userDetails.lastname}`.trim(),
+      uname: userDetails.uname || userDetails.email,
+      bio: userDetails.bio || "Add your bio",
+    };
+
+    return res
+      .status(HttpStatus.OK)
+      .json(new APIResponse(HttpStatus.OK, data, "User fetched successfully"));
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(
+        new APIResponse(HttpStatus.INTERNAL_ERROR, null, "Something went wrong")
+      );
+  }
+};
+
+//========================UPDATE_USER==================================================//
+
+export const updateUser = async (req, res) => {
+  try {
+    const { bio, image, uname } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        bio,
+        image,
+        uname,
+      },
+      select: {
+        email: true,
+        username: true,
+        lastname: true,
+        bio: true,
+        uname: true,
+        image: true,
+      },
+    });
+
+    const responseData = {
+      profilePicture: updatedUser.image || "/api/placeholder/200/200",
+      name: `${updatedUser.username} ${updatedUser.lastname}`.trim(),
+      uname: updatedUser.uname || updatedUser.email,
+      bio: updatedUser.bio || "Add your bio",
+    };
+
+    return res
+      .status(HttpStatus.OK)
+      .json(
+        new APIResponse(
+          HttpStatus.OK,
+          responseData,
+          "User updated successfully"
+        )
+      );
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return res
+      .status(HttpStatus.INTERNAL_ERROR)
+      .json(
+        new APIResponse(HttpStatus.INTERNAL_ERROR, null, "Something went wrong")
+      );
   }
 };
 

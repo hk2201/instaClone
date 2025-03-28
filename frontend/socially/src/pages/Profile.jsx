@@ -1,16 +1,51 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Camera, Edit2, Bookmark, Archive } from "lucide-react";
 import Footer from "../components/Footer";
+import { useLoader } from "../context/loaderContext";
+import { showToast } from "../context/toastService";
+import axios from "axios";
 
 const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [user, setUser] = useState(null);
+  const { setIsLoading } = useLoader();
   const [activeTab, setActiveTab] = useState("posts");
+  const hasFetched = useRef(false); // Prevent duplicate fetches
+
   const [profile, setProfile] = useState({
-    profilePicture: "/api/placeholder/200/200",
-    name: "John Doe",
-    username: "johndoe",
-    bio: "Exploring the world, one post at a time",
+    profilePicture: "",
+    name: "",
+    uname: "",
+    bio: "",
   });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (hasFetched.current) return; // Prevents multiple API calls
+      hasFetched.current = true;
+
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(process.env.REACT_APP_GET_USER, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setProfile(response.data.data);
+        showToast("User Data Fetched", "success");
+      } catch (error) {
+        showToast(
+          `${error.response?.data?.message || "Failed to fetch data"}`,
+          "error"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleProfilePictureChange = (event) => {
     const file = event.target.files[0];
@@ -19,6 +54,34 @@ const ProfilePage = () => {
       reader.onloadend = () =>
         setProfile({ ...profile, profilePicture: reader.result });
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.put(
+        process.env.REACT_APP_UPDATE_USER,
+        profile,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setProfile(response.data.data);
+
+      showToast("User Details Updated", "success");
+    } catch (error) {
+      showToast(
+        error.response?.data?.message || "Failed to update user",
+        "error"
+      );
+    } finally {
+      setIsLoading(false);
+      setIsEditing(false);
     }
   };
 
@@ -62,7 +125,7 @@ const ProfilePage = () => {
 
           <div className="text-center md:text-left w-full">
             <h1 className="text-2xl font-bold">{profile.name}</h1>
-            <p className="text-gray-600">@{profile.username}</p>
+            <p className="text-gray-600">@{profile.uname}</p>
             <p className="text-gray-500 mt-2">{profile.bio}</p>
 
             <div className="flex justify-center md:justify-start items-center mt-4 gap-4">
@@ -160,11 +223,22 @@ const ProfilePage = () => {
                   ) : (
                     <input
                       type="text"
-                      value={profile[field]}
-                      onChange={(e) =>
-                        setProfile({ ...profile, [field]: e.target.value })
+                      value={
+                        field === "username" ? profile.uname : profile[field]
                       }
-                      className="w-full border rounded px-3 py-2"
+                      onChange={(e) =>
+                        setProfile({
+                          ...profile,
+                          [field === "username" ? "uname" : field]:
+                            e.target.value,
+                        })
+                      }
+                      className={`w-full border rounded px-3 py-2 ${
+                        field === "name"
+                          ? "bg-gray-200 cursor-not-allowed text-gray-500"
+                          : ""
+                      }`}
+                      disabled={field === "name"}
                     />
                   )}
                 </div>
@@ -178,7 +252,7 @@ const ProfilePage = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={() => setIsEditing(false)}
+                  onClick={(() => setIsEditing(false), handleSave)}
                   className="bg-indigo-600 text-white px-4 py-2 rounded"
                 >
                   Save
@@ -189,7 +263,7 @@ const ProfilePage = () => {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 w-full border-t z-50">
+      <div className="fixed bottom-0 left-0 w-full border-t">
         <Footer />
       </div>
     </div>

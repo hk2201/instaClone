@@ -20,8 +20,6 @@ export const AuthProvider = ({ children }) => {
     if (storedUser) {
       setUser(storedUser);
     }
-
-    
   }, []);
 
   const login = async (email, password) => {
@@ -36,7 +34,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", token); // Store JWT token
 
       const decoded = jwtDecode(token); // Decode JWT to extract userId
-      const userData = { email, userId: decoded.userId };
+      const userData = {
+        email,
+        userId: decoded.userId,
+        userName: response.data.data.user.username,
+        lastName: response.data.data.user.lastname,
+      };
+
       localStorage.setItem("user", JSON.stringify(userData)); // Store user info
 
       setUser(userData);
@@ -81,7 +85,12 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", token); // Store JWT token
 
       const decoded = jwtDecode(token); // Decode JWT to extract userId
-      const userData = { email, userId: decoded.userId };
+      const userData = {
+        email,
+        userId: decoded.userId,
+        userName: response.data.data.user.username,
+        lastName: response.data.data.user.lastname,
+      };
       localStorage.setItem("user", JSON.stringify(userData)); // Store user info
 
       setUser(userData);
@@ -115,7 +124,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", token); // Store JWT token
 
       const userDecoded = jwtDecode(token); // Decode JWT to extract userId
-      const userData = { email: decoded.email, userId: userDecoded.userId };
+
+      const userData = {
+        email: decoded.email,
+        userId: userDecoded.userId,
+        userName: backendResponse.data.data.user.username,
+        lastName: backendResponse.data.data.user.lastname,
+      };
       localStorage.setItem("user", JSON.stringify(userData)); // Store user info
 
       setUser(userData);
@@ -141,9 +156,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, login, logout, signup, googleLogin }}
-    >
+    <AuthContext.Provider value={{ user, login, logout, signup, googleLogin }}>
       {children}
     </AuthContext.Provider>
   );

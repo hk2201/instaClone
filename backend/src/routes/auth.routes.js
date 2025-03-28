@@ -13,6 +13,8 @@ import {
   addPost,
   get_upload_signature,
   updateLikes,
+  getUser,
+  updateUser,
 } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middlewares/auth.js";
 const router = express.Router();
@@ -43,5 +45,9 @@ router.post("/addPost", authMiddleware, addPost);
 router.get("/get_upload_signature", authMiddleware, get_upload_signature);
 
 router.post("/updateLikes", authMiddleware, updateLikes);
+
+router.get("/getUser", authMiddleware, getUser);
+
+router.put("/updateUser", authMiddleware, updateUser);
 
 export default router;
