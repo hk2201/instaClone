@@ -79,6 +79,20 @@ export const PostProvider = ({ children }) => {
     setPost((prevDum) => [...prevDum, newPost]);
   }
 
+  async function addProfileImage(upData) {
+    let imageURL;
+    try {
+      setIsLoading(true);
+      imageURL = await uploadCloud(upData);
+    } catch (error) {
+      showToast(error.response.data.message, "error");
+    } finally {
+      setIsLoading(false);
+    }
+
+    return imageURL;
+  }
+
   const updateLikes = async (id) => {
     try {
       const token = localStorage.getItem("token"); // Get token from localStorage
@@ -101,7 +115,7 @@ export const PostProvider = ({ children }) => {
     }
   };
 
-  const value = { addDum, post, updateLikes };
+  const value = { addDum, post, updateLikes, addProfileImage };
 
   return <PostContext.Provider value={value}>{children}</PostContext.Provider>;
 };

@@ -1017,13 +1017,13 @@ export const getUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { bio, image, uname } = req.body;
+    const { bio, profilePicture, uname } = req.body;
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
       data: {
         bio,
-        image,
+        image: profilePicture,
         uname,
       },
       select: {

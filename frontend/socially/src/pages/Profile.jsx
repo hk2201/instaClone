@@ -1,16 +1,22 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, use } from "react";
 import { Camera, Edit2, Bookmark, Archive } from "lucide-react";
 import Footer from "../components/Footer";
 import { useLoader } from "../context/loaderContext";
 import { showToast } from "../context/toastService";
 import axios from "axios";
+import Cropper from "react-cropper";
+import "cropperjs/dist/cropper.css";
+import { usePostContext } from "../context/postContext";
 
 const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [user, setUser] = useState(null);
   const { setIsLoading } = useLoader();
   const [activeTab, setActiveTab] = useState("posts");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isCropping, setIsCropping] = useState(false);
+  const cropperRef = useRef(null);
   const hasFetched = useRef(false); // Prevent duplicate fetches
+  const { addProfileImage } = usePostContext();
 
   const [profile, setProfile] = useState({
     profilePicture: "",
@@ -50,10 +56,26 @@ const ProfilePage = () => {
   const handleProfilePictureChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () =>
-        setProfile({ ...profile, profilePicture: reader.result });
-      reader.readAsDataURL(file);
+      const imageBlob = URL.createObjectURL(file);
+      setSelectedImage(imageBlob);
+      // Hide the edit modal and show the cropping modal
+      setIsEditing(false);
+      setIsCropping(true);
+    }
+  };
+
+  const handleCrop = async () => {
+    if (cropperRef.current) {
+      const croppedImageData = cropperRef.current.cropper
+        .getCroppedCanvas()
+        .toDataURL();
+      const imageURL = await addProfileImage(croppedImageData);
+      setProfile({ ...profile, profilePicture: imageURL });
+      // Close the cropping modal
+      setSelectedImage(null);
+      setIsCropping(false);
+      // Reopen the edit modal
+      setIsEditing(true);
     }
   };
 
@@ -91,23 +113,11 @@ const ProfilePage = () => {
     archived: ["6"],
   };
 
-  const ProfilePictureUploader = ({ className }) => (
-    <>
-      <input
-        type="file"
-        accept="image/*"
-        className="hidden"
-        id="profilePicture"
-        onChange={handleProfilePictureChange}
-      />
-      <label
-        htmlFor="profilePicture"
-        className={`absolute bottom-0 right-0 bg-indigo-600 text-white p-1.5 rounded-full cursor-pointer ${className}`}
-      >
-        <Camera size={16} />
-      </label>
-    </>
-  );
+  const handleCancelCrop = () => {
+    setSelectedImage(null);
+    setIsCropping(false);
+    setIsEditing(true);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -120,7 +130,6 @@ const ProfilePage = () => {
               alt="Profile"
               className="w-full h-full rounded-full object-cover border-4 border-white shadow-md"
             />
-            <ProfilePictureUploader />
           </div>
 
           <div className="text-center md:text-left w-full">
@@ -163,7 +172,7 @@ const ProfilePage = () => {
           {postTypes[activeTab].map((id) => (
             <div
               key={id}
-              className="aspect-square bg-gray-100 overflow-hidden rounded"
+              className="aspect-square bg-gray-100 overflow-hidden rounded-xl"
             >
               <img
                 src={`/api/placeholder/300/300?${id}`}
@@ -175,7 +184,7 @@ const ProfilePage = () => {
         </div>
 
         {/* Edit Profile Modal */}
-        {isEditing && (
+        {isEditing && !isCropping && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <h2 className="text-xl font-semibold mb-4">Edit Profile</h2>
@@ -252,10 +261,45 @@ const ProfilePage = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={(() => setIsEditing(false), handleSave)}
+                  onClick={handleSave}
                   className="bg-indigo-600 text-white px-4 py-2 rounded"
                 >
                   Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Image Cropping Modal - Separate from Edit Profile Modal */}
+        {isCropping && selectedImage && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-semibold text-center mb-4">
+                Crop Your Profile Picture
+              </h2>
+              <div className="w-full overflow-hidden rounded-lg border border-gray-300 shadow-sm">
+                <Cropper
+                  src={selectedImage}
+                  style={{ height: 300, width: "100%" }}
+                  aspectRatio={1}
+                  guides={true}
+                  ref={cropperRef}
+                  viewMode={2}
+                />
+              </div>
+              <div className="flex justify-between w-full mt-4">
+                <button
+                  onClick={handleCancelCrop}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-all duration-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCrop}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300"
+                >
+                  Apply
                 </button>
               </div>
             </div>
