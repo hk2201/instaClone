@@ -56,6 +56,7 @@ export const StoreProvider = ({ children }) => {
         },
       });
       setPosts(response.data.data);
+
       navigate(`/posts/${groupId}`);
     } catch (error) {
       showToast(`${error.response.data.message}`, "error");
@@ -93,15 +94,11 @@ export const StoreProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token"); // Get token from localStorage
-      const response = await axios.put(
-        process.env.REACT_APP_UPDATE_GROUP_INFO_API,
-        upData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.put(process.env.REACT_APP_UPDATE_GROUP_INFO_API, upData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       // setGroupData(response.data.data);
       showToast("Group Info Updated ", "success");
       // console.log("Full API response:", response);

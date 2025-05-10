@@ -7,7 +7,7 @@ import {
   Image,
 } from "lucide-react";
 import { CirclePlus } from "lucide-react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useCallback } from "react";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
@@ -20,7 +20,7 @@ const videoConstraints = {
   facingMode: "user",
 };
 
-function Footer({ getImage }) {
+function Footer({ getImage, userId }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,7 +30,6 @@ function Footer({ getImage }) {
   const cropperRef = useRef(null);
   const webcamRef = useRef(null);
   const { groupId } = useStoreContext();
-
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     setSelectedImage(file);
@@ -63,10 +62,10 @@ function Footer({ getImage }) {
     setSelectedImage(null);
   };
 
-  const handleOpenGallery = () => {
-    setIsCameraMode(false);
-    setSelectedImage(null);
-  };
+  // const handleOpenGallery = () => {
+  //   setIsCameraMode(false);
+  //   setSelectedImage(null);
+  // };
 
   const handleInputChange = (e) => {
     setCaption(e.target.value);
@@ -89,7 +88,7 @@ function Footer({ getImage }) {
                   ? "text-indigo-600 bg-indigo-50"
                   : "text-gray-600"
               }`}
-              onClick={() => navigate("/profile/12")}
+              onClick={() => navigate(`/profile/${userId}`)}
             >
               <User
                 className={`w-6 sm:w-8 h-6 sm:h-8 ${

@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from "react";
 import { useLoader } from "../context/loaderContext";
 import { showToast } from "../context/toastService";
 import axios from "axios";
-import { data } from "react-router-dom";
+// import { data } from "react-router-dom";
 import { useStoreContext } from "./storeContext";
 
 const PostContext = createContext();
@@ -96,7 +96,7 @@ export const PostProvider = ({ children }) => {
   const updateLikes = async (id) => {
     try {
       const token = localStorage.getItem("token"); // Get token from localStorage
-      const response = await axios.post(
+      await axios.post(
         process.env.REACT_APP_UPDATE_LIKES,
         { postId: id },
         {

@@ -14,7 +14,8 @@ import Footer from "../components/Footer";
 const Chat = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [newMessage, setNewMessage] = useState("");
-  const [showSearch, setShowSearch] = useState(false);
+  // const [showSearch, setShowSearch] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user"));
 
   // Sample data
   const chats = [
@@ -247,7 +248,7 @@ const Chat = () => {
       </div>
       {/* Hide footer on mobile screens */}
       <div className="!hidden sm:!block border-t">
-        <Footer />
+        <Footer userId={user.userId} />
       </div>
     </div>
   );

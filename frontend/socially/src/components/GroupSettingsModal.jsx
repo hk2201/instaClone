@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   X,
   Upload,
@@ -13,6 +13,9 @@ import { useStoreContext } from "../context/storeContext";
 // import { useLoader } from "../context/loaderContext";
 import MemberList from "../components/MemberList";
 import { useAuth } from "../context/authContext";
+import "cropperjs/dist/cropper.css";
+import Cropper from "react-cropper";
+import { usePostContext } from "../context/postContext";
 
 const GroupSettingsModal = ({ modalHandle, groupID }) => {
   const [activeTab, setActiveTab] = useState("basicInfo");
@@ -39,6 +42,10 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
   // const { setIsLoading } = useLoader();
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isCropping, setIsCropping] = useState(false);
+  const cropperRef = useRef(null);
+  const { addProfileImage } = usePostContext();
 
   const tabs = [
     { id: "basicInfo", label: "Group Info." },
@@ -109,13 +116,43 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
   };
 
   const handleImageChange = (e) => {
+    // const file = e.target.files[0];
+    // if (file) {
+    //   setGroupInfo((prev) => ({
+    //     ...prev,
+    //     image: URL.createObjectURL(file),
+    //   }));
+    // }
+
     const file = e.target.files[0];
     if (file) {
-      setGroupInfo((prev) => ({
-        ...prev,
-        image: URL.createObjectURL(file),
-      }));
+      const imageBlob = URL.createObjectURL(file);
+      setSelectedImage(imageBlob);
+      // Hide the edit modal and show the cropping modal
+      // setIsEditing(false);
+      setIsCropping(true);
     }
+  };
+
+  const handleCrop = async () => {
+    if (cropperRef.current) {
+      const croppedImageData = cropperRef.current.cropper
+        .getCroppedCanvas()
+        .toDataURL();
+      const imageURL = await addProfileImage(croppedImageData);
+      setGroupInfo({ ...groupInfo, image: imageURL });
+      // Close the cropping modal
+      setSelectedImage(null);
+      setIsCropping(false);
+      // Reopen the edit modal
+      // setIsEditing(true);
+    }
+  };
+
+  const handleCancelCrop = () => {
+    setSelectedImage(null);
+    setIsCropping(false);
+    // setIsEditing(true);
   };
 
   const handleSaveChanges = async () => {
@@ -213,6 +250,40 @@ const GroupSettingsModal = ({ modalHandle, groupID }) => {
                     Upload group image (recommended size: 200x200)
                   </p>
                 </div>
+
+                {isCropping && selectedImage && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                      <h2 className="text-xl font-semibold text-center mb-4">
+                        Crop Your Group Picture
+                      </h2>
+                      <div className="w-full overflow-hidden rounded-lg border border-gray-300 shadow-sm">
+                        <Cropper
+                          src={selectedImage}
+                          style={{ height: 300, width: "100%" }}
+                          aspectRatio={1}
+                          guides={true}
+                          ref={cropperRef}
+                          viewMode={2}
+                        />
+                      </div>
+                      <div className="flex justify-between w-full mt-4">
+                        <button
+                          onClick={handleCancelCrop}
+                          className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-all duration-300"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleCrop}
+                          className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700 transition-all duration-300"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Group Name */}
                 <div className="mb-4">

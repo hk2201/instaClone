@@ -1,16 +1,17 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useParams } from "react-router-dom";
 import PostCards from "../components/PostCards";
 import { useStoreContext } from "../context/storeContext";
 import { usePostContext } from "../context/postContext";
 
 function HomePage() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { groupId } = useParams();
   const { fetchPosts, posts, updateGroupId } = useStoreContext();
   const { addDum } = usePostContext();
+  const user = JSON.parse(localStorage.getItem("user"));
 
   function receiveImage(img, caption) {
     addDum(img, caption, groupId); // Update state correctly
@@ -38,7 +39,7 @@ function HomePage() {
           </div>
         </div>
 
-        <Footer getImage={receiveImage} />
+        <Footer getImage={receiveImage} userId={user.userId} />
       </div>
     </div>
   );

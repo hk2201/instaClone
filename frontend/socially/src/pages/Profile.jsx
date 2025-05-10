@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useRef, use } from "react";
-import { Camera, Edit2, Bookmark, Archive } from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
+import { Edit2, Bookmark, Archive } from "lucide-react";
 import Footer from "../components/Footer";
 import { useLoader } from "../context/loaderContext";
 import { showToast } from "../context/toastService";
 import axios from "axios";
 import Cropper from "react-cropper";
+import { useParams } from "react-router-dom";
 import "cropperjs/dist/cropper.css";
 import { usePostContext } from "../context/postContext";
+import { useStoreContext } from "../context/storeContext";
 
 const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -17,6 +19,8 @@ const ProfilePage = () => {
   const cropperRef = useRef(null);
   const hasFetched = useRef(false); // Prevent duplicate fetches
   const { addProfileImage } = usePostContext();
+  const { posts } = useStoreContext();
+  const { profileId } = useParams();
 
   const [profile, setProfile] = useState({
     profilePicture: "",
@@ -108,9 +112,9 @@ const ProfilePage = () => {
   };
 
   const postTypes = {
-    posts: ["1", "2", "3", "4", "5", "6"],
-    saved: ["4", "5"],
-    archived: ["6"],
+    posts: posts,
+    // saved: saved,
+    // archived: archive,
   };
 
   const handleCancelCrop = () => {
@@ -169,18 +173,20 @@ const ProfilePage = () => {
 
         {/* Posts Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
-          {postTypes[activeTab].map((id) => (
-            <div
-              key={id}
-              className="aspect-square bg-gray-100 overflow-hidden rounded-xl"
-            >
-              <img
-                src={`/api/placeholder/300/300?${id}`}
-                alt={`Post ${id}`}
-                className="w-full h-full object-cover hover:scale-105 transition-transform"
-              />
-            </div>
-          ))}
+          {postTypes[activeTab]
+            .filter((post) => post.author.id === profileId) // Filter posts by authorId
+            .map((post) => (
+              <div
+                key={post.id}
+                className="aspect-square bg-gray-100 overflow-hidden rounded-xl"
+              >
+                <img
+                  src={post.mediaUrl}
+                  alt={`Post ${post.id}`}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform"
+                />
+              </div>
+            ))}
         </div>
 
         {/* Edit Profile Modal */}

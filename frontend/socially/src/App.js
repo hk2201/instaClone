@@ -11,55 +11,58 @@ import { LoaderProvider } from "./context/loaderContext";
 import { Toaster } from "sonner";
 import { StoreProvider } from "./context/storeContext";
 import { PostProvider } from "./context/postContext";
+import { ThemeProvider } from "./context/themeContext";
 
 function App() {
   return (
     <BrowserRouter>
-      <LoaderProvider>
-        <Loader />
-        <StoreProvider>
-          <PostProvider>
-            <AuthProvider>
-              <Toaster richColors position="top-right" />
-              <Routes>
-                <Route index element={<LoginPage />} />
-                <Route
-                  path="/posts/:groupId"
-                  element={
-                    <ProtectedRoute>
-                      <Posts />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/groups"
-                  element={
-                    <ProtectedRoute>
-                      <GroupPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chats"
-                  element={
-                    <ProtectedRoute>
-                      <Chat />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile/:profileId"
-                  element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </AuthProvider>
-          </PostProvider>
-        </StoreProvider>
-      </LoaderProvider>
+      <ThemeProvider>
+        <LoaderProvider>
+          <Loader />
+          <StoreProvider>
+            <PostProvider>
+              <AuthProvider>
+                <Toaster richColors position="top-right" />
+                <Routes>
+                  <Route index element={<LoginPage />} />
+                  <Route
+                    path="/posts/:groupId"
+                    element={
+                      <ProtectedRoute>
+                        <Posts />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/groups"
+                    element={
+                      <ProtectedRoute>
+                        <GroupPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/chats"
+                    element={
+                      <ProtectedRoute>
+                        <Chat />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile/:profileId"
+                    element={
+                      <ProtectedRoute>
+                        <ProfilePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+              </AuthProvider>
+            </PostProvider>
+          </StoreProvider>
+        </LoaderProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
